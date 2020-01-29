@@ -12,7 +12,11 @@ module_names = [
     'ViewNotebook',
 ]
 
-flowws_modules = ['{0} = flowws_analysis.{0}:{0}'.format(name) for name in module_names]
+flowws_modules = []
+for name in module_names:
+    flowws_modules.append('{0} = flowws_analysis.{0}:{0}'.format(name))
+    flowws_modules.append(
+        'flowws_analysis.{0} = flowws_analysis.{0}:{0}'.format(name))
 
 setup(name='flowws-analysis',
       author='Matthew Spellings',
