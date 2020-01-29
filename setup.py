@@ -9,6 +9,7 @@ with open('flowws_analysis/version.py') as version_file:
 module_names = [
     'GTAR',
     'Plato',
+    'Pyriodic',
     'ViewNotebook',
 ]
 
