@@ -54,7 +54,10 @@ class Plato(flowws.Stage):
 
         colors = np.atleast_2d(scope.get('color', []))
         if len(colors) < N:
-            colors = np.tile([[.25, .55, .95, 1.]], (N, 1))
+            colors = np.empty((N, 4), dtype=np.float32)
+            colors[:, :3] = plato.cmap.cubeellipse_intensity(
+                types.astype(np.float32), h=1.2, s=-0.25, lam=.45)
+            colors[:, 3] = 1
 
         diameters = np.atleast_1d(scope.get('diameter', 1))
         if len(diameters) < N:
