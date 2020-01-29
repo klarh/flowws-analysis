@@ -108,7 +108,7 @@ class ViewNotebook(flowws.Stage):
                                       1e-2*delta*(not arg.valid_values.inclusive[1]))
                     widget.observe(callback, names='value')
                     stage_widgets.append(widget)
-                elif arg.type in (list, float, tuple):
+                elif arg.type in (str, list, float, tuple):
                     if arg.valid_values is not None:
                         widget = ipw.Dropdown(
                             description=arg.name, value=stage.arguments[arg.name],
