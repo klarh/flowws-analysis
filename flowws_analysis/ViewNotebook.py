@@ -1,4 +1,6 @@
 import argparse
+import contextlib
+import importlib
 import functools
 
 import flowws
@@ -12,8 +14,10 @@ class ViewNotebook(flowws.Stage):
     ARGS = [
         Arg('controls', '-c', bool, True,
             help='Display controls'),
+        Arg('plato_backend', None, str, 'vispy',
+            help='Plato backend to use for associated visuals'),
         Arg('vispy_backend', None, str,
-            help='Vispy backend to use for plato visuals')
+            help='Vispy backend to use for plato visuals'),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -52,11 +56,23 @@ class ViewNotebook(flowws.Stage):
                     import vispy.app
                     vispy.app.use_app(self.arguments['vispy_backend'])
 
-                import plato.draw.vispy as draw
+                pkgname = 'plato.draw.{}'.format(self.arguments['plato_backend'])
+                draw = importlib.import_module(pkgname)
+
+                if self.arguments['plato_backend'] == 'vispy':
+                    # work around a bug in vispy's show()
+                    out = contextlib.nullcontext()
+                elif self.arguments['plato_backend'] == 'pythreejs':
+                    # these don't update their contents in realtime, so always recreate
+                    self._visual_cache.pop(vis, None)
+                    with out:
+                        IPython.display.clear_output(wait=True)
+
                 basic_scene = vis.draw_plato()
                 if vis not in self._visual_cache:
                     self._visual_cache[vis] = basic_scene.convert(draw)
-                    self._visual_cache[vis].show()
+                    with out:
+                        self._visual_cache[vis].show()
                 vispy_scene = self._visual_cache[vis]
 
                 should_clear = len(vispy_scene) != len(basic_scene)
@@ -71,7 +87,10 @@ class ViewNotebook(flowws.Stage):
                     for (src, dest) in zip(basic_scene, vispy_scene):
                         dest.copy_from(src, True)
 
-                vispy_scene.render()
+                try:
+                    vispy_scene.render()
+                except AttributeError:
+                    pass
             else:
                 with out:
                     IPython.display.clear_output(wait=True)
