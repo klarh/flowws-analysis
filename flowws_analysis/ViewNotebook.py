@@ -12,6 +12,8 @@ class ViewNotebook(flowws.Stage):
     ARGS = [
         Arg('controls', '-c', bool, True,
             help='Display controls'),
+        Arg('vispy_backend', None, str,
+            help='Vispy backend to use for plato visuals')
     ]
 
     def __init__(self, *args, **kwargs):
@@ -46,6 +48,10 @@ class ViewNotebook(flowws.Stage):
                     IPython.display.clear_output(wait=True)
                     IPython.display.display(fig)
             elif hasattr(vis, 'draw_plato'):
+                if 'vispy_backend' in self.arguments:
+                    import vispy.app
+                    vispy.app.use_app(self.arguments['vispy_backend'])
+
                 import plato.draw.vispy as draw
                 basic_scene = vis.draw_plato()
                 if vis not in self._visual_cache:
@@ -70,8 +76,6 @@ class ViewNotebook(flowws.Stage):
                 with out:
                     IPython.display.clear_output(wait=True)
                     IPython.display.display(vis)
-
-        visuals.clear()
 
     def _maybe_make_config(self, workflow):
         if self.workflow is not None or not self.arguments['controls']:
@@ -108,7 +112,17 @@ class ViewNotebook(flowws.Stage):
                                       1e-2*delta*(not arg.valid_values.inclusive[1]))
                     widget.observe(callback, names='value')
                     stage_widgets.append(widget)
-                elif arg.type in (str, list, float, tuple):
+                elif arg.type == str:
+                    if arg.valid_values is not None:
+                        widget = ipw.Dropdown(
+                            description=arg.name, value=stage.arguments[arg.name],
+                            options=arg.valid_values)
+                    else:
+                        widget = ipw.Text(
+                            description=arg.name, value=stage.arguments[arg.name])
+                    widget.observe(callback, names='value')
+                    stage_widgets.append(widget)
+                elif arg.type in (list, tuple):
                     if arg.valid_values is not None:
                         widget = ipw.Dropdown(
                             description=arg.name, value=stage.arguments[arg.name],
