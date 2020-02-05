@@ -19,12 +19,31 @@ TYPE_SHAPE_KWARG_MAP = {
 
 @flowws.add_stage_arguments
 class Plato(flowws.Stage):
-    """Render shapes via plato"""
+    """Render shapes via plato.
+
+    This module uses the `position`, `orientations`, `type`, `color`,
+    and `type_shapes.json` quantities found in the scope, if provided,
+    to produce a scene of `plato` shapes.
+
+    The `type_shapes.json` value should provide a string of a
+    json-encoded list containing one *shape description* object
+    (described below) for each type. These will be converted into
+    plato primitives in conjunction with the `type` and other arrays.
+
+    Shape description objects are JSON objects with the following keys:
+
+    - type: one of "ConvexPolyhedron", "Disk", "Mesh", "Polygon", "Sphere"
+    - rounding_radius (only if type is "ConvexPolyhedron" or "Polygon"): rounding radius of a rounded shape, or 0 for perfectly faceted shapes
+    - vertices (only if type is "ConvexPolyhedron", "Mesh", or "Polygon"): coordinates in the shape's reference frame for its vertices; 2D for polygon and 3D for other shapes
+    - indices (only if type is "Mesh"): Array of triangle indices associated with the given set of vertices
+    """
     ARGS = [
+        Arg('outline', '-o', float, 0,
+            help='Outline for all shapes'),
     ]
 
     def run(self, scope, storage):
-        """Prepare data for plato primitives"""
+        """Generate a scene of plato primitives."""
         positions = np.asarray(scope['position'])
         N = len(positions)
         if 'type' in scope:
@@ -40,7 +59,7 @@ class Plato(flowws.Stage):
 
         if 'dimensions' in scope:
             dimensions = scope['dimensions']
-        elif type_shapes and any(shape['name'].lower() in ('disk', 'polygon')
+        elif type_shapes and any(shape['type'].lower() in ('disk', 'polygon')
                                  for shape in type_shapes):
             dimensions = 2
         elif np.allclose(positions[:, 2], 0):
@@ -65,15 +84,15 @@ class Plato(flowws.Stage):
 
         while len(type_shapes) < len(unique_types):
             if dimensions == 2:
-                type_shapes.append(dict(name='Disk'))
+                type_shapes.append(dict(type='Disk'))
             else:
-                type_shapes.append(dict(name='Sphere'))
+                type_shapes.append(dict(type='Sphere'))
 
         primitives = []
         for (t, description) in zip(unique_types, type_shapes):
             filt = types == t
 
-            prim_type = description['name'].lower()
+            prim_type = description['type'].lower()
             prim_class = PRIM_NAME_MAP[prim_type]
 
             if prim_type == 'convexpolyhedron' and description.get('rounding_radius', 0):
@@ -82,7 +101,7 @@ class Plato(flowws.Stage):
                 prim_class = draw.Spheropolygons
 
             kwargs = dict(description)
-            kwargs.pop('name')
+            kwargs.pop('type')
             for key in list(kwargs):
                 new_key = TYPE_SHAPE_KWARG_MAP.get(key, key)
                 kwargs[new_key] = kwargs.pop(key)
@@ -92,6 +111,7 @@ class Plato(flowws.Stage):
             prim.orientations = orientations[filt]
             prim.colors = colors[filt]
             prim.diameters = diameters[filt]
+            prim.outline = self.arguments['outline']
 
             primitives.append(prim)
 
