@@ -12,6 +12,7 @@ module_names = [
     'Plato',
     'Pyriodic',
     'ViewNotebook',
+    'ViewQt',
 ]
 
 flowws_modules = []
