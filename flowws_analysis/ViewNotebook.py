@@ -10,7 +10,11 @@ import ipywidgets as ipw
 
 @flowws.add_stage_arguments
 class ViewNotebook(flowws.Stage):
-    """Provide a notebook-interactive view of the entire workflow"""
+    """Provide an interactive view of the entire workflow using jupyter widgets.
+
+    Interactive widgets will be created inside the notebook. Arguments
+    for each stage can be adjusted while viewing the visual results.
+    """
     ARGS = [
         Arg('controls', '-c', bool, True,
             help='Display controls'),
@@ -27,7 +31,7 @@ class ViewNotebook(flowws.Stage):
         super().__init__(*args, **kwargs)
 
     def run(self, scope, storage):
-        """Displays parameters and outputs for the workflow in an IPython notebook"""
+        """Displays parameters and outputs for the workflow in an IPython notebook."""
         self._maybe_make_config(scope.setdefault('workflow', None))
         self.workflow = scope['workflow']
         self._display_outputs(scope.get('visuals', []))

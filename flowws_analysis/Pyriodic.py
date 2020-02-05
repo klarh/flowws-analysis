@@ -8,7 +8,14 @@ for (name,) in pyriodic.db.query('select name from unit_cells'):
 
 @flowws.add_stage_arguments
 class Pyriodic(flowws.Stage):
-    """Provide the contents of a getar-format file into the scope"""
+    """Browse structures available in pyriodic.
+
+    This module provides all the structures available in the pyriodic
+    default database (which uses all available pyriodic libraries
+    installed on the system). Systems are resized to a minimum of the
+    given size and noise may be added before the rest of the workflow
+    is run.
+    """
     ARGS = [
         Arg('structure', '-s', str, required=True,
             valid_values=VALID_STRUCTURES,

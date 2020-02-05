@@ -8,7 +8,15 @@ import numpy as np
 
 @flowws.add_stage_arguments
 class Colormap(flowws.Stage):
-    """Access and use matplotlib colormaps"""
+    """Access and use matplotlib colormaps on scalar quantities.
+
+    This module emits a `color` value, calculated using a given scalar
+    argument and matplotlib colormap name.
+
+    Valid scalars quantities can be provided to this module by saving
+    them in the scope and adding their name to the `color_scalars`
+    list.
+    """
     ARGS = [
         Arg('colormap_name', '-c', str, 'viridis',
             help='Name of the matplotlib colormap to use'),
@@ -19,7 +27,7 @@ class Colormap(flowws.Stage):
     ]
 
     def run(self, scope, storage):
-        """Generate colors"""
+        """Generate an array of colors using the given color scalars."""
         if 'color_scalars' in scope:
             self.arg_specifications['argument'].valid_values = scope['color_scalars']
 
@@ -33,7 +41,7 @@ class Colormap(flowws.Stage):
         try:
             values = scope[self.arguments['argument']].copy()
         except KeyError:
-            values = np.full(len(N), 0.5)
+            values = np.full(N, 0.5)
 
         normalize = None
         if self.arguments.get('range', None):

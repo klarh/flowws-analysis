@@ -18,7 +18,13 @@ def find_le(a, x):
 
 @flowws.add_stage_arguments
 class GTAR(flowws.Stage):
-    """Provide the contents of a getar-format file into the scope"""
+    """Emit the contents of a getar-format file into the scope.
+
+    The GTAR module outputs the records found in a getar-format file
+    directly into the scope. It provides a notion of frames in a
+    trajectory using the discretely-varying record with the most
+    indices as the basis.
+    """
     ARGS = [
         Arg('filename', '-i', str, required=True,
             help='Getar-format filename to open'),
@@ -32,7 +38,7 @@ class GTAR(flowws.Stage):
         super().__init__(*args, **kwargs)
 
     def run(self, scope, storage):
-        """Load records found in a getar file into the scope"""
+        """Load records found in a getar file into the scope."""
         scope['filename'] = self.arguments['filename']
         scope['frame'] = self.arguments['frame']
 

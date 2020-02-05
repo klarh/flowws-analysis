@@ -318,7 +318,7 @@ class ViewQt(flowws.Stage):
         super().__init__(*args, **kwargs)
 
     def run(self, scope, storage):
-        """Displays parameters and outputs for the workflow in an IPython notebook"""
+        """Displays parameters and outputs for the workflow in a Qt window."""
         self.workflow = scope['workflow']
 
         if self._running_threads is None:
