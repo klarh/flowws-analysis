@@ -233,7 +233,7 @@ class ViewQtApp(QtWidgets.QApplication):
             self._update_visual(vis)
 
         self.mdi_area.tileSubWindows()
-        self.main_window._setup_state(self.workflow.stages, visuals, False)
+        self.main_window._setup_state(self.workflow.stages, visuals)
 
     def _update_visual(self, vis):
         if hasattr(vis, 'draw_matplotlib'):
