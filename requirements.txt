@@ -1,0 +1,7 @@
+gtar
+plato-draw
+pyriodic
+qt.py
+pyside2
+ipywidgets
+ipython
