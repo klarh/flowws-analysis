@@ -1,9 +1,10 @@
 
 import argparse
 import contextlib
+import functools
+import hashlib
 import importlib
 import logging
-import functools
 import threading
 import traceback
 import queue
@@ -18,9 +19,59 @@ class ViewQtWindow(QtWidgets.QMainWindow):
     def __init__(self, exit_event, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._exit_event = exit_event
+        self._settings_keys = 'None', 'None'
+
+    def _setup_state(self, stages, visuals):
+        stage_names = [type(stage).__name__ for stage in stages]
+        vis_names = [type(vis).__name__ for vis in visuals]
+
+        vis_hash = hashlib.sha1(b'flowws-analysis.ViewQt')
+        vis_hash.update(b'vis_names')
+        vis_hash.update(';'.join(vis_names).encode())
+
+        full_hash = vis_hash.copy()
+        full_hash.update(b'stage_names')
+        full_hash.update(';'.join(stage_names).encode())
+
+        self._settings_keys = full_hash.hexdigest()[:32], vis_hash.hexdigest()[:32]
+
+    def _save_state(self):
+        settings = QtCore.QSettings('flowws-analysis', 'ViewQt')
+        state = self.saveState()
+
+        for key_id in self._settings_keys:
+            state_key = 'autosave/{}/window_state'.format(key_id)
+            settings.setValue(state_key, state)
+            geom_key = 'autosave/{}/geometry'.format(key_id)
+            settings.setValue(state_key, self.saveGeometry())
+
+            for (i, window) in enumerate(self.centralWidget().subWindowList()):
+                geom_key = 'autosave/{}/{}/geometry'.format(key_id, i)
+                settings.setValue(geom_key, window.saveGeometry())
+
+    def _load_state(self):
+        settings = QtCore.QSettings('flowws-analysis', 'ViewQt')
+        for key_id in self._settings_keys:
+            state_key = 'autosave/{}/window_state'.format(key_id)
+            state = settings.value(state_key, None)
+            geom_key = 'autosave/{}/geometry'.format(key_id)
+            geom = settings.value(geom_key)
+
+            if state is not None:
+                self.restoreState(state)
+                self.restoreGeometry(geom)
+
+                iterations = enumerate(self.centralWidget().subWindowList())
+                for (i, window) in iterations:
+                    geom_key = 'autosave/{}/{}/geometry'.format(key_id, i)
+                    window.restoreGeometry(settings.value(geom_key))
+
+                return
 
     def closeEvent(self, event):
+        self._save_state()
         self._exit_event.set()
+        super().closeEvent(event)
 
 class ViewQtApp(QtWidgets.QApplication):
     def __init__(self, scope, workflow, rerun_event, stage_event, exit_event,
@@ -86,8 +137,8 @@ class ViewQtApp(QtWidgets.QApplication):
 
         self._make_config_widgets()
         self._make_visuals()
-
         self.main_window.show()
+        self.main_window._load_state()
 
     def _make_config_widgets(self):
         widgets = []
@@ -182,6 +233,7 @@ class ViewQtApp(QtWidgets.QApplication):
             self._update_visual(vis)
 
         self.mdi_area.tileSubWindows()
+        self.main_window._setup_state(self.workflow.stages, visuals, False)
 
     def _update_visual(self, vis):
         if hasattr(vis, 'draw_matplotlib'):
