@@ -1,6 +1,6 @@
 gtar
 plato-draw
-pyriodic
+pyriodic-structures
 qt.py
 pyside2
 ipywidgets
