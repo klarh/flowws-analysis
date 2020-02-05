@@ -1,5 +1,5 @@
 import bisect
-import contextlib
+import functools
 
 import flowws
 from flowws import Argument as Arg
@@ -28,7 +28,7 @@ class GTAR(flowws.Stage):
 
     def __init__(self, *args, **kwargs):
         self._cached_record_frames = {}
-        self._cached_filename = None
+        self._cached_file_handles = None
         super().__init__(*args, **kwargs)
 
     def run(self, scope, storage):
@@ -36,26 +36,33 @@ class GTAR(flowws.Stage):
         scope['filename'] = self.arguments['filename']
         scope['frame'] = self.arguments['frame']
 
-        with contextlib.ExitStack() as stack:
-            gtar_file = stack.enter_context(storage.open(
-                self.arguments['filename'], 'rb', on_filesystem=True))
-            gtar_traj = stack.enter_context(gtar.GTAR(gtar_file.name, 'r'))
+        try:
+            gtar_file = gtar_traj = None
+            gtar_file = storage.open(
+                self.arguments['filename'], 'rb', on_filesystem=True)
+            gtar_traj = gtar.GTAR(gtar_file.name, 'r')
 
-            self._cache_record_frames(gtar_traj, scope, storage)
-            recs = self._set_record_frames()
+            if self._cached_file_handles:
+                for v in reversed(self._cached_file_handles):
+                    v.close()
+            self._cached_file_handles = (gtar_file, gtar_traj)
+        except:
+            for handle in (gtar_traj, gtar_file):
+                if handle is not None:
+                    handle.close()
 
-            for rec in recs:
-                scope[rec.getName()] = gtar_traj.getRecord(rec)
+        self._cache_record_frames(gtar_traj, scope, storage)
+        recs = self._set_record_frames()
+
+        for rec in recs:
+            callback = functools.partial(gtar_traj.getRecord, rec, rec.getIndex())
+            scope.set_call(rec.getName(), callback)
 
     def _cache_record_frames(self, traj, scope, storage):
-        if self._cached_filename == self.arguments['filename']:
-            return
-
         self._cached_record_frames = {}
         for rec in traj.getRecordTypes():
             self._cached_record_frames[rec] = list(map(
                 index_sort_key, traj.queryFrames(rec)))
-        self._cached_filename = self.arguments['filename']
 
     def _set_record_frames(self):
         frame = self.arguments['frame']
