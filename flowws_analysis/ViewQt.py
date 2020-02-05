@@ -75,7 +75,7 @@ class ViewQtWindow(QtWidgets.QMainWindow):
 
 class ViewQtApp(QtWidgets.QApplication):
     def __init__(self, scope, workflow, rerun_event, stage_event, exit_event,
-                 visual_queue, *args, **kwargs):
+                 visual_queue, display_controls, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.scope = scope
         self.workflow = workflow
@@ -86,7 +86,7 @@ class ViewQtApp(QtWidgets.QApplication):
 
         self._visual_cache = {}
 
-        self._make_widgets()
+        self._make_widgets(display_controls)
         self._make_timers()
 
     def _make_timers(self):
@@ -125,7 +125,7 @@ class ViewQtApp(QtWidgets.QApplication):
         for vis in visuals:
             self._update_visual(vis)
 
-    def _make_widgets(self):
+    def _make_widgets(self, display_controls):
         self.main_window = ViewQtWindow(self.exit_event)
         self.mdi_area = QtWidgets.QMdiArea(self.main_window)
         self.config_dock = QtWidgets.QDockWidget('Options', self.main_window)
@@ -134,6 +134,9 @@ class ViewQtApp(QtWidgets.QApplication):
 
         self.main_window.setCentralWidget(self.mdi_area)
         self.main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.config_dock)
+
+        if not display_controls:
+            self.config_dock.close()
 
         self._make_config_widgets()
         self._make_visuals()
@@ -284,16 +287,22 @@ class GuiThread(threading.Thread):
         self.args = kwargs['args']
 
     def run(self):
-        (scope, workflow, rerun_event, stage_event, exit_event, visual_queue) = \
+        (scope, workflow, rerun_event, stage_event, exit_event, visual_queue,
+         display_controls) = \
             self.args
 
         app = ViewQtApp(scope, workflow, rerun_event, stage_event, exit_event,
-                        visual_queue, [])
+                        visual_queue, display_controls, [])
         app.exec_()
 
 @flowws.add_stage_arguments
 class ViewQt(flowws.Stage):
-    """Provide an interactive view of the entire workflow using Qt"""
+    """Provide an interactive view of the entire workflow using Qt.
+
+    An interactive display window will be opened that displays visual
+    results while allowing the arguments of all stages in the workflow
+    to be modified.
+    """
     ARGS = [
         Arg('controls', '-c', bool, True,
             help='Display controls'),
@@ -314,7 +323,8 @@ class ViewQt(flowws.Stage):
 
         if self._running_threads is None:
             args = (scope, self.workflow, self._rerun_event,
-                    self._stage_event, self._exit_event, self._visual_queue)
+                    self._stage_event, self._exit_event, self._visual_queue,
+                    self.arguments['controls'])
             self._running_threads = gui_thread = GuiThread(args=args)
             gui_thread.start()
 
