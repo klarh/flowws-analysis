@@ -21,7 +21,7 @@ TYPE_SHAPE_KWARG_MAP = {
 class Plato(flowws.Stage):
     """Render shapes via plato.
 
-    This module uses the `position`, `orientations`, `type`, `color`,
+    This module uses the `position`, `orientation`, `type`, `color`,
     and `type_shapes.json` quantities found in the scope, if provided,
     to produce a scene of `plato` shapes.
 
@@ -93,6 +93,7 @@ class Plato(flowws.Stage):
             filt = types == t
 
             prim_type = description['type'].lower()
+            is_2d = prim_type in ('disk', 'polygon')
             prim_class = PRIM_NAME_MAP[prim_type]
 
             if prim_type == 'convexpolyhedron' and description.get('rounding_radius', 0):
@@ -107,7 +108,10 @@ class Plato(flowws.Stage):
                 kwargs[new_key] = kwargs.pop(key)
             prim = prim_class(**kwargs)
 
-            prim.positions = positions[filt]
+            if is_2d:
+                prim.positions = positions[filt, :2]
+            else:
+                prim.positions = positions[filt]
             prim.orientations = orientations[filt]
             prim.colors = colors[filt]
             prim.diameters = diameters[filt]
