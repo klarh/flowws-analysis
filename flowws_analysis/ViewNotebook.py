@@ -115,34 +115,36 @@ class ViewNotebook(flowws.Stage):
                 callback = functools.partial(self.rerun, arg, stage)
 
                 if arg.type == int:
-                    widget = ipw.IntSlider(
-                        description=arg.name, value=stage.arguments[arg.name])
+                    widget = ipw.IntSlider(description=arg.name)
                     if isinstance(arg.valid_values, flowws.Range):
                         widget.min = (arg.valid_values.min +
                                       (not arg.valid_values.inclusive[0]))
                         widget.max = (arg.valid_values.max -
                                       (not arg.valid_values.inclusive[1]))
+                    if arg.name in stage.arguments:
+                        widget.value = stage.arguments[arg.name]
                     widget.observe(callback, names='value')
                     stage_widgets.append(widget)
                 elif arg.type == float:
-                    widget = ipw.FloatSlider(
-                        description=arg.name, value=stage.arguments[arg.name])
+                    widget = ipw.FloatSlider(description=arg.name)
                     if isinstance(arg.valid_values, flowws.Range):
                         delta = arg.valid_values.max - arg.valid_values.min
                         widget.min = (arg.valid_values.min +
                                       1e-2*delta*(not arg.valid_values.inclusive[0]))
                         widget.max = (arg.valid_values.max -
                                       1e-2*delta*(not arg.valid_values.inclusive[1]))
+                    if arg.name in stage.arguments:
+                        widget.value = stage.arguments[arg.name]
                     widget.observe(callback, names='value')
                     stage_widgets.append(widget)
                 elif arg.type == str:
                     if arg.valid_values is not None:
                         widget = ipw.Dropdown(
-                            description=arg.name, value=stage.arguments[arg.name],
-                            options=arg.valid_values)
+                            description=arg.name, options=arg.valid_values)
                     else:
-                        widget = ipw.Text(
-                            description=arg.name, value=stage.arguments[arg.name])
+                        widget = ipw.Text(description=arg.name)
+                    if arg.name in stage.arguments:
+                        widget.value = stage.arguments[arg.name]
                     widget.observe(callback, names='value')
                     stage_widgets.append(widget)
                 elif arg.type in (list, tuple):
@@ -153,8 +155,9 @@ class ViewNotebook(flowws.Stage):
                     else:
                         callback = functools.partial(
                             self.rerun, arg, stage, eval_first=True)
-                        widget = ipw.Text(
-                            description=arg.name, value=stage.arguments[arg.name])
+                        widget = ipw.Text(description=arg.name)
+                        if arg.name in stage.arguments:
+                            widget.value = str(stage.arguments[stage.name])
                     widget.observe(callback, names='value')
                     stage_widgets.append(widget)
 
