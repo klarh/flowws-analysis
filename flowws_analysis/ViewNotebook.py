@@ -111,7 +111,7 @@ class ViewNotebook(flowws.Stage):
 
             label = ipw.HTML('<center><b>{}</b></center>'.format(type(stage).__name__))
             stage_widgets = [label]
-            for arg in stage.ARGS:
+            for arg in stage.arg_specification_list:
                 callback = functools.partial(self.rerun, arg, stage)
 
                 if arg.type == int:
