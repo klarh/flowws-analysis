@@ -44,6 +44,7 @@ class Plato(flowws.Stage):
 
     def run(self, scope, storage):
         """Generate a scene of plato primitives."""
+        scene_kwargs = {}
         positions = np.asarray(scope['position'])
         N = len(positions)
         if 'type' in scope:
@@ -59,6 +60,10 @@ class Plato(flowws.Stage):
 
         if 'dimensions' in scope:
             dimensions = scope['dimensions']
+            try:
+                dimensions = dimensions[0]
+            except TypeError:
+                pass
         elif type_shapes and any(shape['type'].lower() in ('disk', 'polygon')
                                  for shape in type_shapes):
             dimensions = 2
@@ -121,11 +126,15 @@ class Plato(flowws.Stage):
 
         if 'box' in scope:
             prim = draw.Box.from_box(scope['box'])
-            prim.width = min(scope['box'][:3])*1e-2
+            prim.width = min(scope['box'][:dimensions])*5e-3
             prim.color = (0, 0, 0, 1)
             primitives.append(prim)
 
-        self.scene = draw.Scene(primitives)
+            scene_kwargs['size'] = scope['box'][:2]
+            # use default size of 800px wide
+            scene_kwargs['pixel_scale'] = 0.95*800/scene_kwargs['size'][0]
+
+        self.scene = draw.Scene(primitives, **scene_kwargs)
 
         scope.setdefault('visuals', []).append(self)
 
