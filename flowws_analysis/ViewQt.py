@@ -23,34 +23,6 @@ class ViewQtWindow(QtWidgets.QMainWindow):
         self._exit_event = exit_event
         self._settings_keys = 'None', 'None'
 
-    def _setup_state(self, stages, visuals):
-        stage_names = [type(stage).__name__ for stage in stages]
-        vis_names = [type(vis).__name__ for vis in visuals]
-
-        vis_hash = hashlib.sha1(b'flowws-analysis.ViewQt')
-        vis_hash.update(b'vis_names')
-        vis_hash.update(';'.join(vis_names).encode())
-
-        full_hash = vis_hash.copy()
-        full_hash.update(b'stage_names')
-        full_hash.update(';'.join(stage_names).encode())
-
-        self._settings_keys = full_hash.hexdigest()[:32], vis_hash.hexdigest()[:32]
-
-    def _save_state(self):
-        settings = QtCore.QSettings('flowws-analysis', 'ViewQt')
-        state = self.saveState()
-
-        for key_id in self._settings_keys:
-            state_key = 'autosave/{}/window_state'.format(key_id)
-            settings.setValue(state_key, state)
-            geom_key = 'autosave/{}/geometry'.format(key_id)
-            settings.setValue(state_key, self.saveGeometry())
-
-            for (i, window) in enumerate(self.centralWidget().subWindowList()):
-                geom_key = 'autosave/{}/{}/geometry'.format(key_id, i)
-                settings.setValue(geom_key, window.saveGeometry())
-
     def _load_state(self):
         settings = QtCore.QSettings('flowws-analysis', 'ViewQt')
         for key_id in self._settings_keys:
@@ -69,6 +41,34 @@ class ViewQtWindow(QtWidgets.QMainWindow):
                     window.restoreGeometry(settings.value(geom_key))
 
                 return
+
+    def _save_state(self):
+        settings = QtCore.QSettings('flowws-analysis', 'ViewQt')
+        state = self.saveState()
+
+        for key_id in self._settings_keys:
+            state_key = 'autosave/{}/window_state'.format(key_id)
+            settings.setValue(state_key, state)
+            geom_key = 'autosave/{}/geometry'.format(key_id)
+            settings.setValue(state_key, self.saveGeometry())
+
+            for (i, window) in enumerate(self.centralWidget().subWindowList()):
+                geom_key = 'autosave/{}/{}/geometry'.format(key_id, i)
+                settings.setValue(geom_key, window.saveGeometry())
+
+    def _setup_state(self, stages, visuals):
+        stage_names = [type(stage).__name__ for stage in stages]
+        vis_names = [type(vis).__name__ for vis in visuals]
+
+        vis_hash = hashlib.sha1(b'flowws-analysis.ViewQt')
+        vis_hash.update(b'vis_names')
+        vis_hash.update(';'.join(vis_names).encode())
+
+        full_hash = vis_hash.copy()
+        full_hash.update(b'stage_names')
+        full_hash.update(';'.join(stage_names).encode())
+
+        self._settings_keys = full_hash.hexdigest()[:32], vis_hash.hexdigest()[:32]
 
     def closeEvent(self, event):
         self._save_state()
@@ -92,121 +92,9 @@ class ViewQtApp(QtWidgets.QApplication):
         self._make_menu()
         self._make_timers()
 
-    def _save_json(self):
-        settings = QtCore.QSettings('flowws-analysis', 'ViewQt')
-        dirname = settings.value('save_menu/last_directory')
-        (fname, _) = QtWidgets.QFileDialog.getSaveFileName(
-            self.main_window, 'Save Workflow', dirname, filter='*.json')
-
-        if not fname:
-            return
-
-        description = self.workflow.to_JSON()
-        with open(fname, 'w') as output:
-            json.dump(description, output, skipkeys=True)
-        settings.setValue('save_menu/last_directory', os.path.dirname(fname))
-
-    def _make_menu(self):
-        self.menubar = QtWidgets.QMenuBar()
-
-        self.file_menu = self.menubar.addMenu('&File')
-        save_action = self.file_menu.addAction('&Save')
-        save_action.setShortcut('Ctrl+S')
-        save_action.triggered.connect(self._save_json)
-        self.file_menu.addAction(save_action)
-        close_action = self.file_menu.addAction('&Close')
-        close_action.setShortcut('Ctrl+W')
-        close_action.triggered.connect(lambda *args: self.main_window.close())
-        self.file_menu.addAction(close_action)
-
-        self.view_menu = self.menubar.addMenu('&View')
-        self.view_menu.addSection('Windows')
-        tile_action = self.view_menu.addAction('&Tile')
-        tile_action.triggered.connect(
-            lambda *args: self.mdi_area.tileSubWindows())
-        self.view_menu.addAction(tile_action)
-        cascade_action = self.view_menu.addAction('&Cascade')
-        cascade_action.triggered.connect(
-            lambda *args: self.mdi_area.cascadeSubWindows())
-        self.view_menu.addAction(cascade_action)
-
-        self.main_window.setMenuBar(self.menubar)
-
-    def _make_timers(self):
-        self.stage_timer = QtCore.QTimer(self)
-        self.stage_timer.timeout.connect(self._update_stage_config)
-        self.stage_timer.start(1)
-
-        self.visual_timer = QtCore.QTimer(self)
-        self.visual_timer.timeout.connect(self._update_visuals)
-        self.visual_timer.start(1)
-
-        self.close_timer = QtCore.QTimer(self);
-        self.close_timer.timeout.connect(self._check_close)
-        self.close_timer.start(1)
-
     def _check_close(self):
         if self.exit_event.is_set():
             self.main_window.close()
-
-    def _update_stage_config(self):
-        if not self.stage_event.is_set():
-            return
-
-        self.stage_event.clear()
-        # TODO cache some of these things instead of constantly recreating
-        self._make_config_widgets()
-
-    def _update_visuals(self):
-        visuals = []
-        try:
-            while True:
-                visuals = self.visual_queue.get_nowait()
-        except queue.Empty: # skip to most recent visuals to display
-            pass
-
-        for vis in visuals:
-            self._update_visual(vis)
-
-    def _make_widgets(self, display_controls):
-        self.main_window = ViewQtWindow(self.exit_event)
-        self.mdi_area = QtWidgets.QMdiArea(self.main_window)
-        self.config_dock = QtWidgets.QDockWidget('Options', self.main_window)
-        self.config_widget = QtWidgets.QFrame(self.config_dock)
-        self.config_dock.setWidget(self.config_widget)
-
-        self.main_window.setCentralWidget(self.mdi_area)
-        self.main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.config_dock)
-
-        if not display_controls:
-            self.config_dock.close()
-
-        self._make_config_widgets()
-        self._make_visuals()
-        self.main_window.show()
-        self.main_window._load_state()
-
-    def _make_config_widgets(self):
-        widgets = []
-        for stage in self.workflow.stages:
-            groupbox = QtWidgets.QGroupBox(type(stage).__name__)
-            layout = QtWidgets.QFormLayout()
-            groupbox.setLayout(layout)
-
-            for arg in stage.arg_specification_list:
-                widget = self._make_config_widget(arg, stage)
-                if widget is None:
-                    continue
-
-                layout.addRow(arg.name, widget)
-
-            if layout.rowCount():
-                widgets.append(groupbox)
-
-        layout = QtWidgets.QVBoxLayout()
-        for widget in widgets:
-            layout.addWidget(widget)
-        self.config_widget.setLayout(layout)
 
     def _make_config_widget(self, arg, stage):
         callback = functools.partial(self._rerun, arg, stage)
@@ -264,13 +152,66 @@ class ViewQtApp(QtWidgets.QApplication):
 
         return result
 
-    def _rerun(self, arg, stage, value, eval_first=False):
-        if eval_first:
-            value = eval(value)
+    def _make_config_widgets(self):
+        widgets = []
+        for stage in self.workflow.stages:
+            groupbox = QtWidgets.QGroupBox(type(stage).__name__)
+            layout = QtWidgets.QFormLayout()
+            groupbox.setLayout(layout)
 
-        stage.arguments[arg.name] = value
+            for arg in stage.arg_specification_list:
+                widget = self._make_config_widget(arg, stage)
+                if widget is None:
+                    continue
 
-        self.rerun_event.set()
+                layout.addRow(arg.name, widget)
+
+            if layout.rowCount():
+                widgets.append(groupbox)
+
+        layout = QtWidgets.QVBoxLayout()
+        for widget in widgets:
+            layout.addWidget(widget)
+        self.config_widget.setLayout(layout)
+
+    def _make_menu(self):
+        self.menubar = QtWidgets.QMenuBar()
+
+        self.file_menu = self.menubar.addMenu('&File')
+        save_action = self.file_menu.addAction('&Save')
+        save_action.setShortcut('Ctrl+S')
+        save_action.triggered.connect(self._save_json)
+        self.file_menu.addAction(save_action)
+        close_action = self.file_menu.addAction('&Close')
+        close_action.setShortcut('Ctrl+W')
+        close_action.triggered.connect(lambda *args: self.main_window.close())
+        self.file_menu.addAction(close_action)
+
+        self.view_menu = self.menubar.addMenu('&View')
+        self.view_menu.addSection('Windows')
+        tile_action = self.view_menu.addAction('&Tile')
+        tile_action.triggered.connect(
+            lambda *args: self.mdi_area.tileSubWindows())
+        self.view_menu.addAction(tile_action)
+        cascade_action = self.view_menu.addAction('&Cascade')
+        cascade_action.triggered.connect(
+            lambda *args: self.mdi_area.cascadeSubWindows())
+        self.view_menu.addAction(cascade_action)
+
+        self.main_window.setMenuBar(self.menubar)
+
+    def _make_timers(self):
+        self.stage_timer = QtCore.QTimer(self)
+        self.stage_timer.timeout.connect(self._update_stage_config)
+        self.stage_timer.start(1)
+
+        self.visual_timer = QtCore.QTimer(self)
+        self.visual_timer.timeout.connect(self._update_visuals)
+        self.visual_timer.start(1)
+
+        self.close_timer = QtCore.QTimer(self);
+        self.close_timer.timeout.connect(self._check_close)
+        self.close_timer.start(1)
 
     def _make_visuals(self):
         visuals = list(self.scope.get('visuals', []))
@@ -281,10 +222,58 @@ class ViewQtApp(QtWidgets.QApplication):
         self.mdi_area.tileSubWindows()
         self.main_window._setup_state(self.workflow.stages, visuals)
 
+    def _make_widgets(self, display_controls):
+        self.main_window = ViewQtWindow(self.exit_event)
+        self.mdi_area = QtWidgets.QMdiArea(self.main_window)
+        self.config_dock = QtWidgets.QDockWidget('Options', self.main_window)
+        self.config_widget = QtWidgets.QFrame(self.config_dock)
+        self.config_dock.setWidget(self.config_widget)
+
+        self.main_window.setCentralWidget(self.mdi_area)
+        self.main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.config_dock)
+
+        if not display_controls:
+            self.config_dock.close()
+
+        self._make_config_widgets()
+        self._make_visuals()
+        self.main_window.show()
+        self.main_window._load_state()
+
+    def _rerun(self, arg, stage, value, eval_first=False):
+        if eval_first:
+            value = eval(value)
+
+        stage.arguments[arg.name] = value
+
+        self.rerun_event.set()
+
+    def _save_json(self):
+        settings = QtCore.QSettings('flowws-analysis', 'ViewQt')
+        dirname = settings.value('save_menu/last_directory')
+        (fname, _) = QtWidgets.QFileDialog.getSaveFileName(
+            self.main_window, 'Save Workflow', dirname, filter='*.json')
+
+        if not fname:
+            return
+
+        description = self.workflow.to_JSON()
+        with open(fname, 'w') as output:
+            json.dump(description, output, skipkeys=True)
+        settings.setValue('save_menu/last_directory', os.path.dirname(fname))
+
     def _setup_mdi_subwindow(self, window):
         window.setWindowFlags(QtCore.Qt.CustomizeWindowHint |
                               QtCore.Qt.WindowMinMaxButtonsHint |
                               QtCore.Qt.WindowTitleHint)
+
+    def _update_stage_config(self):
+        if not self.stage_event.is_set():
+            return
+
+        self.stage_event.clear()
+        # TODO cache some of these things instead of constantly recreating
+        self._make_config_widgets()
 
     def _update_visual(self, vis):
         if hasattr(vis, 'draw_matplotlib'):
@@ -330,6 +319,17 @@ class ViewQtApp(QtWidgets.QApplication):
                 vispy_scene.render()
             except AttributeError:
                 pass
+
+    def _update_visuals(self):
+        visuals = []
+        try:
+            while True:
+                visuals = self.visual_queue.get_nowait()
+        except queue.Empty: # skip to most recent visuals to display
+            pass
+
+        for vis in visuals:
+            self._update_visual(vis)
 
 class GuiThread(threading.Thread):
     def __init__(self, **kwargs):
