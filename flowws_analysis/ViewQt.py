@@ -4,7 +4,9 @@ import contextlib
 import functools
 import hashlib
 import importlib
+import json
 import logging
+import os
 import threading
 import traceback
 import queue
@@ -87,7 +89,48 @@ class ViewQtApp(QtWidgets.QApplication):
         self._visual_cache = {}
 
         self._make_widgets(display_controls)
+        self._make_menu()
         self._make_timers()
+
+    def _save_json(self):
+        settings = QtCore.QSettings('flowws-analysis', 'ViewQt')
+        dirname = settings.value('save_menu/last_directory')
+        (fname, _) = QtWidgets.QFileDialog.getSaveFileName(
+            self.main_window, 'Save Workflow', dirname, filter='*.json')
+
+        if not fname:
+            return
+
+        description = self.workflow.to_JSON()
+        with open(fname, 'w') as output:
+            json.dump(description, output, skipkeys=True)
+        settings.setValue('save_menu/last_directory', os.path.dirname(fname))
+
+    def _make_menu(self):
+        self.menubar = QtWidgets.QMenuBar()
+
+        self.file_menu = self.menubar.addMenu('&File')
+        save_action = self.file_menu.addAction('&Save')
+        save_action.setShortcut('Ctrl+S')
+        save_action.triggered.connect(self._save_json)
+        self.file_menu.addAction(save_action)
+        close_action = self.file_menu.addAction('&Close')
+        close_action.setShortcut('Ctrl+W')
+        close_action.triggered.connect(lambda *args: self.main_window.close())
+        self.file_menu.addAction(close_action)
+
+        self.view_menu = self.menubar.addMenu('&View')
+        self.view_menu.addSection('Windows')
+        tile_action = self.view_menu.addAction('&Tile')
+        tile_action.triggered.connect(
+            lambda *args: self.mdi_area.tileSubWindows())
+        self.view_menu.addAction(tile_action)
+        cascade_action = self.view_menu.addAction('&Cascade')
+        cascade_action.triggered.connect(
+            lambda *args: self.mdi_area.cascadeSubWindows())
+        self.view_menu.addAction(cascade_action)
+
+        self.main_window.setMenuBar(self.menubar)
 
     def _make_timers(self):
         self.stage_timer = QtCore.QTimer(self)
@@ -238,6 +281,11 @@ class ViewQtApp(QtWidgets.QApplication):
         self.mdi_area.tileSubWindows()
         self.main_window._setup_state(self.workflow.stages, visuals)
 
+    def _setup_mdi_subwindow(self, window):
+        window.setWindowFlags(QtCore.Qt.CustomizeWindowHint |
+                              QtCore.Qt.WindowMinMaxButtonsHint |
+                              QtCore.Qt.WindowTitleHint)
+
     def _update_visual(self, vis):
         if hasattr(vis, 'draw_matplotlib'):
             from matplotlib.backends.backend_qt5agg import FigureCanvas
@@ -246,7 +294,8 @@ class ViewQtApp(QtWidgets.QApplication):
             if vis not in self._visual_cache:
                 fig = self._visual_cache[vis] = Figure(dpi=72)
                 canvas = FigureCanvas(fig)
-                self.mdi_area.addSubWindow(canvas)
+                window = self.mdi_area.addSubWindow(canvas)
+                self._setup_mdi_subwindow(window)
 
             fig = self._visual_cache[vis]
             fig.clear()
@@ -261,7 +310,8 @@ class ViewQtApp(QtWidgets.QApplication):
 
             if vis not in self._visual_cache:
                 scene = self._visual_cache[vis] = basic_scene.convert(draw)
-                self.mdi_area.addSubWindow(scene._canvas.native)
+                window = self.mdi_area.addSubWindow(scene._canvas.native)
+                self._setup_mdi_subwindow(window)
 
             vispy_scene = self._visual_cache[vis]
             should_clear = len(vispy_scene) != len(basic_scene)
