@@ -136,6 +136,9 @@ class Plato(flowws.Stage):
 
         self.scene = draw.Scene(primitives, **scene_kwargs)
 
+        if dimensions == 2:
+            self.scene.enable('pan')
+
         scope.setdefault('visuals', []).append(self)
 
     def draw_plato(self):
