@@ -3,7 +3,7 @@ from flowws import Argument as Arg
 import pyriodic
 
 VALID_STRUCTURES = []
-for (name,) in pyriodic.db.query('select name from unit_cells'):
+for (name,) in pyriodic.db.query('select name from unit_cells order by name'):
     VALID_STRUCTURES.append(name)
 
 @flowws.add_stage_arguments
