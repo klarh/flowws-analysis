@@ -17,6 +17,12 @@ TYPE_SHAPE_KWARG_MAP = {
     'rounding_radius': 'radius',
 }
 
+SCENE_FEATURE_REMAP = {
+    'additive_rendering': 'additive_rendering',
+    'ambient_occlusion': 'ssao',
+    'fast_antialiasing': 'fxaa',
+}
+
 @flowws.add_stage_arguments
 class Plato(flowws.Stage):
     """Render shapes via plato.
@@ -40,6 +46,12 @@ class Plato(flowws.Stage):
     ARGS = [
         Arg('outline', '-o', float, 0,
             help='Outline for all shapes'),
+        Arg('additive_rendering', None, bool, False,
+            help='Use additive rendering for shapes'),
+        Arg('fast_antialiasing', None, bool, False,
+            help='Use Fast Approximate Antialiasing (FXAA)'),
+        Arg('ambient_occlusion', None, bool, False,
+            help='Use Screen Space Ambient Occlusion (SSAO)'),
     ]
 
     def run(self, scope, storage):
@@ -138,6 +150,10 @@ class Plato(flowws.Stage):
 
         if dimensions == 2:
             self.scene.enable('pan')
+
+        for (argument_name, feature_name) in SCENE_FEATURE_REMAP.items():
+            if self.arguments[argument_name]:
+                self.scene.enable(feature_name)
 
         scope.setdefault('visuals', []).append(self)
 
