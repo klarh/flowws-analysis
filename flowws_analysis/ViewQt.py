@@ -298,7 +298,9 @@ class ViewQtApp(QtWidgets.QApplication):
             basic_scene = vis.draw_plato()
 
             if vis not in self._visual_cache:
-                scene = self._visual_cache[vis] = basic_scene.convert(draw)
+                canvas_kwargs = dict(config=dict(samples=4))
+                scene = self._visual_cache[vis] = basic_scene.convert(
+                    draw, canvas_kwargs=canvas_kwargs)
                 window = self.mdi_area.addSubWindow(scene._canvas.native)
                 self._setup_mdi_subwindow(window)
 
