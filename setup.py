@@ -43,7 +43,7 @@ setup(name='flowws-analysis',
       extras_require={
           'gtar': ['gtar'],
           'notebook': ['ipython', 'ipywidgets'],
-          'plato': ['plato-draw'],
+          'plato': ['plato-draw >= 1.8'],
           'pyriodic': ['pyriodic-structures'],
           'qt': ['qt.py', 'pyside2'],
       },
