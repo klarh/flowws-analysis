@@ -1,0 +1,9 @@
+m2r
+
+gtar
+plato-draw
+pyriodic-structures
+qt.py
+pyside2
+ipywidgets
+ipython
