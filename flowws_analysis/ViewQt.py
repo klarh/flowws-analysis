@@ -99,6 +99,7 @@ class ViewQtApp(QtWidgets.QApplication):
         self.visual_queue = visual_queue
 
         self._visual_cache = {}
+        self._currently_refreshing = False
 
         self._make_widgets(display_controls)
         self._make_menu()
@@ -214,6 +215,10 @@ class ViewQtApp(QtWidgets.QApplication):
         cascade_action.triggered.connect(
             lambda *args: self.mdi_area.cascadeSubWindows())
         self.view_menu.addAction(cascade_action)
+        refresh_action = self.view_menu.addAction('&Refresh')
+        refresh_action.setShortcut('Ctrl+R')
+        refresh_action.triggered.connect(self._refresh_windows)
+        self.view_menu.addAction(refresh_action)
 
         self.main_window.setMenuBar(self.menubar)
 
@@ -258,6 +263,13 @@ class ViewQtApp(QtWidgets.QApplication):
         self.main_window.show()
         self.main_window._load_state()
 
+    def _refresh_windows(self):
+        self.main_window._save_state()
+        self._visual_cache.clear()
+        self.mdi_area.closeAllSubWindows()
+        self._currently_refreshing = True
+        self.rerun_event.set()
+
     def _rerun(self, arg, stage, value, eval_first=False):
         if eval_first:
             value = eval(value)
@@ -284,6 +296,7 @@ class ViewQtApp(QtWidgets.QApplication):
         window.setWindowFlags(QtCore.Qt.CustomizeWindowHint |
                               QtCore.Qt.WindowMinMaxButtonsHint |
                               QtCore.Qt.WindowTitleHint)
+        window.show()
 
     def _update_stage_config(self):
         if not self.stage_event.is_set():
@@ -353,6 +366,10 @@ class ViewQtApp(QtWidgets.QApplication):
 
         if visuals:
             self.main_window._setup_state(self.workflow.stages, visuals)
+
+        if self._currently_refreshing:
+            self._currently_refreshing = False
+            self.main_window._load_state()
 
 class GuiThread(threading.Thread):
     def __init__(self, **kwargs):
