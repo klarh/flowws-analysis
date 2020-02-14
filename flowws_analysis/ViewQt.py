@@ -331,7 +331,7 @@ class ViewQtApp(QtWidgets.QApplication):
             if vis not in self._visual_cache:
                 canvas_kwargs = dict(config=dict(samples=4))
                 scene = self._visual_cache[vis] = basic_scene.convert(
-                    draw, canvas_kwargs=canvas_kwargs)
+                    draw, canvas_kwargs=canvas_kwargs, clip_scale=8)
                 window = self.mdi_area.addSubWindow(scene._canvas.native)
                 self._setup_mdi_subwindow(window)
 
