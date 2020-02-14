@@ -88,10 +88,9 @@ class ViewQtWindow(QtWidgets.QMainWindow):
         super().closeEvent(event)
 
 class ViewQtApp(QtWidgets.QApplication):
-    def __init__(self, scope, workflow, rerun_event, stage_event, exit_event,
+    def __init__(self, workflow, rerun_event, stage_event, exit_event,
                  visual_queue, display_controls, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.scope = scope
         self.workflow = workflow
         self.rerun_event = rerun_event
         self.stage_event = stage_event
@@ -238,7 +237,12 @@ class ViewQtApp(QtWidgets.QApplication):
         self.close_timer.start(1)
 
     def _make_visuals(self):
-        visuals = list(self.scope.get('visuals', []))
+        visuals = []
+        try:
+            while True:
+                visuals = self.visual_queue.get_nowait()
+        except queue.Empty: # skip to most recent visuals to display
+            pass
 
         for vis in visuals:
             self._update_visual(vis)
@@ -379,11 +383,11 @@ class GuiThread(threading.Thread):
         self.args = kwargs['args']
 
     def run(self):
-        (scope, workflow, rerun_event, stage_event, exit_event, visual_queue,
+        (workflow, rerun_event, stage_event, exit_event, visual_queue,
          display_controls) = \
             self.args
 
-        app = ViewQtApp(scope, workflow, rerun_event, stage_event, exit_event,
+        app = ViewQtApp(workflow, rerun_event, stage_event, exit_event,
                         visual_queue, display_controls, [])
         app.exec_()
 
@@ -414,9 +418,10 @@ class ViewQt(flowws.Stage):
         self.workflow = scope['workflow']
 
         if self._running_threads is None:
-            args = (scope, self.workflow, self._rerun_event,
+            args = (self.workflow, self._rerun_event,
                     self._stage_event, self._exit_event, self._visual_queue,
                     self.arguments['controls'])
+            self._visual_queue.put(scope.get('visuals', []))
             self._running_threads = gui_thread = GuiThread(args=args)
             gui_thread.start()
 
