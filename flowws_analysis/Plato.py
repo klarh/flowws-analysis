@@ -52,6 +52,8 @@ class Plato(flowws.Stage):
             help='Use Fast Approximate Antialiasing (FXAA)'),
         Arg('ambient_occlusion', None, bool, False,
             help='Use Screen Space Ambient Occlusion (SSAO)'),
+        Arg('disable_rounding', None, bool, False,
+            help='Disable spheropolyhedra and spheropolygons'),
     ]
 
     def run(self, scope, storage):
@@ -98,6 +100,11 @@ class Plato(flowws.Stage):
         diameters = np.atleast_1d(scope.get('diameter', 1))
         if len(diameters) < N:
             diameters = np.repeat(1, N)
+
+        if self.arguments.get('disable_rounding', False):
+            for description in type_shapes:
+                if 'rounding_radius' in description:
+                    description['rounding_radius'] = 0
 
         while len(type_shapes) < len(unique_types):
             if dimensions == 2:
