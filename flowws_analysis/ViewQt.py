@@ -17,6 +17,15 @@ from Qt import QtCore, QtGui, QtWidgets
 
 logger = logging.getLogger(__name__)
 
+def _bool_checkbox_helper(f):
+    remap = {
+        QtCore.Qt.CheckState.Checked: True,
+        QtCore.Qt.CheckState.Unchecked: False
+    }
+    def result(value):
+        return f(remap[value])
+    return result
+
 class ViewQtWindow(QtWidgets.QMainWindow):
     def __init__(self, exit_event, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -152,6 +161,11 @@ class ViewQtApp(QtWidgets.QApplication):
                 if arg.name in stage.arguments:
                     result.setText(stage.arguments[arg.name])
                 result.textChanged[str].connect(callback)
+        elif arg.type == bool:
+            result = QtWidgets.QCheckBox()
+            if arg.name in stage.arguments:
+                result.setChecked(stage.arguments[arg.name])
+            result.stateChanged.connect(_bool_checkbox_helper(callback))
 
         return result
 
