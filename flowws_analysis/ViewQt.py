@@ -38,23 +38,26 @@ class ViewQtWindow(QtWidgets.QMainWindow):
                 iterations = enumerate(self.centralWidget().subWindowList())
                 for (i, window) in iterations:
                     geom_key = 'autosave/{}/{}/geometry'.format(key_id, i)
-                    window.restoreGeometry(settings.value(geom_key))
+                    window_geom = settings.value(geom_key, None)
+                    if window_geom is not None:
+                        window.setGeometry(window_geom)
 
                 return
 
     def _save_state(self):
         settings = QtCore.QSettings('flowws-analysis', 'ViewQt')
         state = self.saveState()
+        geom = self.saveGeometry()
 
         for key_id in self._settings_keys:
             state_key = 'autosave/{}/window_state'.format(key_id)
             settings.setValue(state_key, state)
             geom_key = 'autosave/{}/geometry'.format(key_id)
-            settings.setValue(state_key, self.saveGeometry())
+            settings.setValue(geom_key, geom)
 
             for (i, window) in enumerate(self.centralWidget().subWindowList()):
                 geom_key = 'autosave/{}/{}/geometry'.format(key_id, i)
-                settings.setValue(geom_key, window.saveGeometry())
+                settings.setValue(geom_key, window.geometry())
 
     def _setup_state(self, stages, visuals):
         stage_names = [type(stage).__name__ for stage in stages]
@@ -226,6 +229,7 @@ class ViewQtApp(QtWidgets.QApplication):
         self.main_window = ViewQtWindow(self.exit_event)
         self.mdi_area = QtWidgets.QMdiArea(self.main_window)
         self.config_dock = QtWidgets.QDockWidget('Options', self.main_window)
+        self.config_dock.setObjectName('config_dock')
         self.config_widget = QtWidgets.QFrame(self.config_dock)
         self.config_dock.setWidget(self.config_widget)
 
@@ -332,6 +336,9 @@ class ViewQtApp(QtWidgets.QApplication):
 
         for vis in visuals:
             self._update_visual(vis)
+
+        if visuals:
+            self.main_window._setup_state(self.workflow.stages, visuals)
 
 class GuiThread(threading.Thread):
     def __init__(self, **kwargs):
