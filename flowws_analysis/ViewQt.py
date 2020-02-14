@@ -7,6 +7,7 @@ import importlib
 import json
 import logging
 import os
+import signal
 import threading
 import traceback
 import queue
@@ -377,19 +378,35 @@ class ViewQtApp(QtWidgets.QApplication):
             self._currently_refreshing = False
             self.main_window._load_state()
 
-class GuiThread(threading.Thread):
+class RerunThread(threading.Thread):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.args = kwargs['args']
 
     def run(self):
-        (workflow, rerun_event, stage_event, exit_event, visual_queue,
+        (scope, workflow, rerun_event, stage_event, exit_event, visual_queue,
          display_controls) = \
             self.args
 
-        app = ViewQtApp(workflow, rerun_event, stage_event, exit_event,
-                        visual_queue, display_controls, [])
-        app.exec_()
+        while True:
+            try:
+                rerun_event.wait(1e-2)
+                if rerun_event.is_set():
+                    rerun_event.clear()
+                    workflow.run()
+                    stage_event.set()
+                    visual_queue.put(scope.get('visuals', []))
+            except KeyboardInterrupt:
+                exit_event.set()
+            except Exception as e:
+                msg = traceback.format_exc(3)
+                logger.error(msg)
+
+            if exit_event.is_set():
+                break
+
+def sigint_handler(exit_event, *args):
+    exit_event.set()
 
 @flowws.add_stage_arguments
 class ViewQt(flowws.Stage):
@@ -418,28 +435,20 @@ class ViewQt(flowws.Stage):
         self.workflow = scope['workflow']
 
         if self._running_threads is None:
-            args = (self.workflow, self._rerun_event,
+            our_sigint_handler = functools.partial(sigint_handler, self._exit_event)
+            signal.signal(signal.SIGINT, our_sigint_handler)
+
+            args = (scope, self.workflow, self._rerun_event,
                     self._stage_event, self._exit_event, self._visual_queue,
                     self.arguments['controls'])
             self._visual_queue.put(scope.get('visuals', []))
-            self._running_threads = gui_thread = GuiThread(args=args)
-            gui_thread.start()
+            self._running_threads = rerun_thread = RerunThread(args=args)
+            rerun_thread.start()
 
-            while True:
-                try:
-                    self._rerun_event.wait(1e-2)
-                    if self._rerun_event.is_set():
-                        self._rerun_event.clear()
-                        self.workflow.run()
-                        self._stage_event.set()
-                        self._visual_queue.put(scope.get('visuals', []))
-                except KeyboardInterrupt:
-                    self._exit_event.set()
-                except Exception as e:
-                    msg = traceback.format_exc(3)
-                    logger.error(msg)
+            app = ViewQtApp(
+                self.workflow, self._rerun_event,
+                self._stage_event, self._exit_event, self._visual_queue,
+                self.arguments['controls'], [])
+            app.exec_()
 
-                if self._exit_event.is_set():
-                    break
-
-            gui_thread.join()
+            rerun_thread.join()
