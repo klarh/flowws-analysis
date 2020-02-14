@@ -173,6 +173,8 @@ class ViewQtApp(QtWidgets.QApplication):
     def _make_config_widgets(self):
         widgets = []
         for stage in self.workflow.stages:
+            if isinstance(stage, ViewQt):
+                continue
             groupbox = QtWidgets.QGroupBox(type(stage).__name__)
             layout = QtWidgets.QFormLayout()
             groupbox.setLayout(layout)
