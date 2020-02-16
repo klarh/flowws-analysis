@@ -148,6 +148,7 @@ class ViewQtApp(QtWidgets.QApplication):
                               1e-2*delta*(not range_.inclusive[0]))
             result.setMaximum(range_.max -
                               1e-2*delta*(not range_.inclusive[1]))
+            result.setSingleStep(5e-2*delta)
             result.setValue(val)
             result.valueChanged[float].connect(callback)
         elif arg.type == str:
