@@ -46,6 +46,8 @@ class Plato(flowws.Stage):
     ARGS = [
         Arg('outline', '-o', float, 0,
             help='Outline for all shapes'),
+        Arg('color_scale', None, float, 1, valid_values=flowws.Range(0, 10, True),
+            help='Factor to scale color RGB intensities by'),
         Arg('additive_rendering', None, bool, False,
             help='Use additive rendering for shapes'),
         Arg('fast_antialiasing', None, bool, False,
@@ -96,6 +98,8 @@ class Plato(flowws.Stage):
             colors[:, :3] = plato.cmap.cubeellipse_intensity(
                 types.astype(np.float32), h=1.2, s=-0.25, lam=.45)
             colors[:, 3] = 1
+
+        colors[:, :3] *= self.arguments['color_scale']
 
         diameters = np.atleast_1d(scope.get('diameter', 1))
         if len(diameters) < N:
