@@ -8,6 +8,23 @@ from flowws import Argument as Arg
 import IPython
 import ipywidgets as ipw
 
+_NON_LIVE_PLATO_BACKENDS = [
+    'matplotlib',
+    'povray',
+    'pythreejs',
+    'zdog',
+]
+
+@contextlib.contextmanager
+def manage_matplotlib_interactive():
+    import matplotlib.pyplot
+    was_interactive = matplotlib.pyplot.isinteractive()
+    matplotlib.pyplot.ioff()
+
+    yield None
+    if was_interactive:
+        matplotlib.pyplot.ion()
+
 @flowws.add_stage_arguments
 class ViewNotebook(flowws.Stage):
     """Provide an interactive view of the entire workflow using jupyter widgets.
@@ -66,7 +83,7 @@ class ViewNotebook(flowws.Stage):
                 if self.arguments['plato_backend'] == 'vispy':
                     # work around a bug in vispy's show()
                     out = contextlib.nullcontext()
-                elif self.arguments['plato_backend'] == 'pythreejs':
+                elif self.arguments['plato_backend'] in _NON_LIVE_PLATO_BACKENDS:
                     # these don't update their contents in realtime, so always recreate
                     self._visual_cache.pop(vis, None)
                     with out:
@@ -76,7 +93,17 @@ class ViewNotebook(flowws.Stage):
                 if vis not in self._visual_cache:
                     self._visual_cache[vis] = basic_scene.convert(draw)
                     with out:
-                        self._visual_cache[vis].show()
+                        if self.arguments['plato_backend'] == 'matplotlib':
+                            import matplotlib, matplotlib.pyplot
+                            dpi = matplotlib.rcParams['figure.dpi']
+                            figsize = basic_scene.size_pixels/dpi
+                            with manage_matplotlib_interactive():
+                                fig = matplotlib.pyplot.figure(
+                                    id(vis), figsize=figsize, dpi=dpi, clear=True)
+                                (fig, _) = self._visual_cache[vis].render(fig)
+                            IPython.display.display(fig)
+                        else:
+                            self._visual_cache[vis].show()
                 vispy_scene = self._visual_cache[vis]
 
                 should_clear = len(vispy_scene) != len(basic_scene)
@@ -92,7 +119,9 @@ class ViewNotebook(flowws.Stage):
                         dest.copy_from(src, True)
 
                 try:
-                    vispy_scene.render()
+                    with out:
+                        if self.arguments['plato_backend'] != 'matplotlib':
+                            vispy_scene.render()
                 except AttributeError:
                     pass
             else:
