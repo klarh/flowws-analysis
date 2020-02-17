@@ -118,17 +118,16 @@ class ViewQtApp(QtWidgets.QApplication):
             if arg.name in stage.arguments:
                 val = stage.arguments[arg.name]
             else:
-                val = result.value()
+                val = 0
 
             if arg.valid_values is not None:
                 range_ = arg.valid_values
+                result.setMinimum(range_.min +
+                                  (not range_.inclusive[0]))
+                result.setMaximum(range_.max -
+                                  (not range_.inclusive[1]))
             else:
-                range_ = flowws.Range(0, val*4, True)
-
-            result.setMinimum(range_.min +
-                              (not range_.inclusive[0]))
-            result.setMaximum(range_.max -
-                              (not range_.inclusive[1]))
+                result.setMaximum(max(1024, val*4))
             result.setValue(val)
             result.valueChanged[int].connect(callback)
         elif arg.type == float:
@@ -136,14 +135,15 @@ class ViewQtApp(QtWidgets.QApplication):
             if arg.name in stage.arguments:
                 val = stage.arguments[arg.name]
             else:
-                val = 1
+                val = 0
 
             if arg.valid_values is not None:
                 range_ = arg.valid_values
             else:
-                range_ = flowws.Range(0, val*4, True)
+                range_ = flowws.Range(0, val*4 if val else 8, True)
 
             delta = range_.max - range_.min
+
             result.setMinimum(range_.min +
                               1e-2*delta*(not range_.inclusive[0]))
             result.setMaximum(range_.max -
