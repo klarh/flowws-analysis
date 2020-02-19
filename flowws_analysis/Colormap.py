@@ -28,11 +28,14 @@ class Colormap(flowws.Stage):
 
     def run(self, scope, storage):
         """Generate an array of colors using the given color scalars."""
-        if 'color_scalars' in scope:
-            self.arg_specifications['argument'].valid_values = scope['color_scalars']
+        color_scalars = scope.setdefault('color_scalars', [])
+        if 'type' not in color_scalars and 'type' in scope:
+            color_scalars.append('type')
 
-            if self.arguments.get('argument', None) is None:
-                self.arguments['argument'] = scope['color_scalars'][0]
+        self.arg_specifications['argument'].valid_values = color_scalars
+
+        if self.arguments.get('argument', None) is None:
+            self.arguments['argument'] = color_scalars[0]
         self.arg_specifications['colormap_name'].valid_values = \
             sorted(matplotlib.cm.cmap_d.keys())
 
