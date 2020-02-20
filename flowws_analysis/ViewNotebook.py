@@ -119,9 +119,8 @@ class ViewNotebook(flowws.Stage):
                         dest.copy_from(src, True)
 
                 try:
-                    with out:
-                        if self.arguments['plato_backend'] != 'matplotlib':
-                            vispy_scene.render()
+                    if self.arguments['plato_backend'] != 'matplotlib':
+                        vispy_scene.render()
                 except AttributeError:
                     pass
             else:
