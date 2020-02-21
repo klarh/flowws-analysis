@@ -19,12 +19,9 @@ class Save(flowws.Stage):
             help='Vispy backend to use for plato visuals')
     ]
 
-    def __init__(self, *args, **kwargs):
-        self._used_filenames = set()
-        super().__init__(*args, **kwargs)
-
     def run(self, scope, storage):
         """Save all visuals found"""
+        self._used_filenames = scope.setdefault('used_filenames', set())
         visuals = scope.get('visuals', [])
 
         for vis in visuals:
