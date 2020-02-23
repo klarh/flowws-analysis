@@ -153,9 +153,9 @@ class Plato(flowws.Stage):
             prim.color = (0, 0, 0, 1)
             primitives.append(prim)
 
-            scene_kwargs['size'] = scope['box'][:2]
+            scene_kwargs['size'] = 1.05*np.array(scope['box'][:2])
             # use default size of 800px wide
-            scene_kwargs['pixel_scale'] = 0.95*800/scene_kwargs['size'][0]
+            scene_kwargs['pixel_scale'] = 800/scene_kwargs['size'][0]
 
         self.scene = draw.Scene(primitives, **scene_kwargs)
 
