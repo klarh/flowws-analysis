@@ -14,6 +14,7 @@ import queue
 
 import flowws
 from flowws import Argument as Arg
+import Qt
 from Qt import QtCore, QtGui, QtWidgets
 
 logger = logging.getLogger(__name__)
@@ -332,7 +333,7 @@ class ViewQtApp(QtWidgets.QApplication):
 
         elif hasattr(vis, 'draw_plato'):
             import vispy, vispy.app
-            vispy.app.use_app('PySide2')
+            vispy.app.use_app(Qt.__binding__)
             import plato.draw.vispy as draw
             basic_scene = vis.draw_plato()
 
