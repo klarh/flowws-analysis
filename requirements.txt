@@ -1,5 +1,8 @@
+garnett
+gsd
 gtar
 plato-draw
+pycifrw
 pyriodic-structures
 qt.py
 pyside2

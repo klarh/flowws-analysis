@@ -15,6 +15,7 @@ with open(readme_fname) as readme_file:
 
 module_names = [
     'Colormap',
+    'Garnett',
     'GTAR',
     'Plato',
     'Pyriodic',
@@ -42,6 +43,7 @@ setup(name='flowws-analysis',
           'flowws_modules': flowws_modules,
       },
       extras_require={
+          'garnett': ['garnett', 'gsd', 'gtar', 'pycifrw'],
           'gtar': ['gtar'],
           'notebook': ['ipython', 'ipywidgets'],
           'plato': ['plato-draw >= 1.8'],
