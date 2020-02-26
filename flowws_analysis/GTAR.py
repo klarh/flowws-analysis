@@ -5,6 +5,8 @@ import flowws
 from flowws import Argument as Arg
 import gtar
 
+gtar.widths.setdefault('color', 4)
+
 def index_sort_key(x):
     """Sorting key to use for getar frame indices"""
     return (len(x), x)
