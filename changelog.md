@@ -1,3 +1,14 @@
+# v0.3 - 2020/02/27
+
+## Added
+
+- `Garnett`
+
+## Updated
+
+- Qt libraries other than pyside2 can be used in `ViewQt`
+- Colors can be directly read from getar files using `GTAR`
+
 # v0.2 - 2020/02/25
 
 ## Added
