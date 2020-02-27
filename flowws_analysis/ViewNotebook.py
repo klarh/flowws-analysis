@@ -91,7 +91,7 @@ class ViewNotebook(flowws.Stage):
 
                 basic_scene = vis.draw_plato()
                 if vis not in self._visual_cache:
-                    self._visual_cache[vis] = basic_scene.convert(draw)
+                    self._visual_cache[vis] = basic_scene.convert(draw, clip_scale=8)
                     with out:
                         if self.arguments['plato_backend'] == 'matplotlib':
                             import matplotlib, matplotlib.pyplot
