@@ -9,10 +9,16 @@ analysis pipelines for scientific simulations.
 
 ## Installation
 
-Install `flowws-analysis` from PyPI:
+Install `flowws-analysis` from PyPI (note that most modules require
+dependencies; use the second `pip install` command below to install
+those) :
 
 ```
+# this installs flowws-analysis without any prerequisites
 pip install flowws-analysis
+
+# optional prerequisites can be installed via extras, for example:
+pip install flowws-analysis[garnett,gtar,notebook,plato,pyriodic,qt]
 ```
 
 Alternatively, install from source:
