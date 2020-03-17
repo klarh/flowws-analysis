@@ -32,9 +32,14 @@ class Colormap(flowws.Stage):
         if 'type' not in color_scalars and 'type' in scope:
             color_scalars.append('type')
 
+        argument = self.arguments.get('argument', None)
+        if (argument is not None and argument not in color_scalars
+            and argument in scope):
+            color_scalars.append(argument)
+
         self.arg_specifications['argument'].valid_values = color_scalars
 
-        if self.arguments.get('argument', None) is None:
+        if argument is None:
             self.arguments['argument'] = color_scalars[0]
         self.arg_specifications['colormap_name'].valid_values = \
             sorted(matplotlib.cm.cmap_d.keys())
