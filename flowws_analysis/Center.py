@@ -29,7 +29,7 @@ class Center(flowws.Stage):
     (0, 0, 0).
     """
     ARGS = [
-        Arg('particle', '-p', int,
+        Arg('particle', '-p', int, -1,
             help='Particle index to center with (default: use center of mass of the system)'),
     ]
 
@@ -38,10 +38,13 @@ class Center(flowws.Stage):
         box = scope.get('box', None)
         positions = scope['position']
         self.arg_specifications['particle'].valid_values = flowws.Range(
-            0, len(positions), (True, False))
+            -1, len(positions), (True, False))
 
-        if self.arguments.get('particle', None):
-            center_point = positions[self.arguments['particle']]
+        index = self.arguments['particle']
+        index = index if index >= 0 else None
+
+        if index is not None:
+            center_point = positions[index]
             positions -= center_point[np.newaxis]
 
             if box is not None:
