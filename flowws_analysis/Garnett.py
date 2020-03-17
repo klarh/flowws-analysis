@@ -75,8 +75,15 @@ class Garnett(flowws.Stage):
             0, len(garnett_traj), (True, False))
         frame = garnett_traj[self.arguments['frame']]
 
-        type_map = {k: i for (i, k) in enumerate(sorted(set(frame.types)))}
-        types = np.array([type_map[t] for t in frame.types], dtype=np.uint32)
+        try:
+            types = frame.typeid
+            positions = frame.position
+            orientations = frame.orientation
+        except AttributeError:
+            type_map = {k: i for (i, k) in enumerate(sorted(set(frame.types)))}
+            types = np.array([type_map[t] for t in frame.types], dtype=np.uint32)
+            positions = frame.positions
+            orientations = frame.orientations
 
         try:
             type_shapes = [shape.type_shape for shape in frame.shapedef.values()]
@@ -85,8 +92,8 @@ class Garnett(flowws.Stage):
         except AttributeError: # no shapedefs
             pass
 
-        scope['position'] = frame.positions
-        scope['orientation'] = frame.orientations
+        scope['position'] = positions
+        scope['orientation'] = orientations
         scope['type'] = types
         scope['box'] = frame.box.get_box_array()
         scope['dimensions'] = frame.box.dimensions
