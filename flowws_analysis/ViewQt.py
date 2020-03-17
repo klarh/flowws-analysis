@@ -357,6 +357,13 @@ class ViewQtApp(QtWidgets.QApplication):
                 for (src, dest) in zip(basic_scene, vispy_scene):
                     dest.copy_from(src, True)
 
+            for feature in (vispy_scene.enabled_features -
+                            basic_scene.enabled_features):
+                vispy_scene.disable(feature)
+            for feature in basic_scene.enabled_features:
+                config = basic_scene.get_feature_config(feature)
+                vispy_scene.enable(feature, **config)
+
             try:
                 vispy_scene.render()
             except AttributeError:
