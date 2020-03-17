@@ -9,7 +9,7 @@ Modules
 =======
 
 .. automodule:: flowws_analysis
-   :members: Colormap, GTAR, Plato, Pyriodic, ViewNotebook, ViewQt
+   :members: Center, Colormap, GTAR, Plato, Pyriodic, ViewNotebook, ViewQt
 
 Indices and tables
 ==================

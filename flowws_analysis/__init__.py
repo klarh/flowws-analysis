@@ -2,6 +2,7 @@ from flowws import try_to_import
 
 from .version import __version__
 
+Center = try_to_import('.Center', 'Center', __name__)
 Colormap = try_to_import('.Colormap', 'Colormap', __name__)
 Garnett = try_to_import('.Garnett', 'Garnett', __name__)
 GTAR = try_to_import('.GTAR', 'GTAR', __name__)

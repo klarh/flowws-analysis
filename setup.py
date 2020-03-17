@@ -14,6 +14,7 @@ with open(readme_fname) as readme_file:
     long_description = readme_file.read()
 
 module_names = [
+    'Center',
     'Colormap',
     'Garnett',
     'GTAR',
