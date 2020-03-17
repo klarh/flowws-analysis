@@ -27,7 +27,13 @@ Alternatively, install from source:
 pip install git+https://github.com/klarh/flowws-analysis.git#egg=flowws-analysis
 ```
 
-## Documentation
+## Examples
+
+Consult the
+[flowws-examples](https://github.com/klarh/flowws-examples) project
+for examples using `flowws-analysis` modules.
+
+## API Documentation
 
 Browse more detailed documentation
 [online](https://flowws-analysis.readthedocs.io) or build the sphinx
