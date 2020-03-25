@@ -21,6 +21,7 @@ module_names = [
     'Plato',
     'Pyriodic',
     'Save',
+    'Selection',
     'ViewNotebook',
     'ViewQt',
 ]

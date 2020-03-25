@@ -91,13 +91,14 @@ class ViewQtWindow(QtWidgets.QMainWindow):
 
 class ViewQtApp(QtWidgets.QApplication):
     def __init__(self, workflow, rerun_event, stage_event, exit_event,
-                 visual_queue, display_controls, *args, **kwargs):
+                 visual_queue, scope_queue, display_controls, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.workflow = workflow
         self.rerun_event = rerun_event
         self.stage_event = stage_event
         self.exit_event = exit_event
         self.visual_queue = visual_queue
+        self.scope_queue = scope_queue
 
         self._visual_cache = {}
         self._currently_refreshing = False
@@ -187,6 +188,12 @@ class ViewQtApp(QtWidgets.QApplication):
                     continue
 
                 layout.addRow(arg.name, widget)
+
+            for (label, callback) in getattr(stage, 'gui_actions', []):
+                widget = QtWidgets.QPushButton(label)
+                widget.clicked.connect(
+                    lambda *args, c=callback, **kwargs: c(self._last_scope, self._last_storage))
+                layout.addWidget(widget)
 
             if layout.rowCount():
                 widgets.append(groupbox)
@@ -383,6 +390,13 @@ class ViewQtApp(QtWidgets.QApplication):
         if visuals:
             self.main_window._setup_state(self.workflow.stages, visuals)
 
+        try:
+            while True:
+                (self._last_scope, self._last_storage) = self.scope_queue.get_nowait()
+        except queue.Empty: # skip to most recent visuals to display
+            pass
+        self._last_scope['visual_objects'] = self._visual_cache
+
         if self._currently_refreshing:
             self._currently_refreshing = False
             self.main_window._load_state()
@@ -437,11 +451,14 @@ class ViewQt(flowws.Stage):
         self._stage_event = threading.Event()
         self._exit_event = threading.Event()
         self._visual_queue = queue.Queue()
+        self._scope_queue = queue.Queue()
         super().__init__(*args, **kwargs)
 
     def run(self, scope, storage):
         """Displays parameters and outputs for the workflow in a Qt window."""
         self.workflow = scope['workflow']
+        scope['rerun_callback'] = self.rerun
+        self._scope_queue.put((scope, storage))
 
         if self._running_threads is None:
             our_sigint_handler = functools.partial(sigint_handler, self._exit_event)
@@ -457,7 +474,11 @@ class ViewQt(flowws.Stage):
             app = ViewQtApp(
                 self.workflow, self._rerun_event,
                 self._stage_event, self._exit_event, self._visual_queue,
+                self._scope_queue,
                 self.arguments['controls'], [])
             app.exec_()
 
             rerun_thread.join()
+
+    def rerun(self):
+        self._rerun_event.set()

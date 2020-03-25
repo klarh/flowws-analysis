@@ -49,9 +49,13 @@ class ViewNotebook(flowws.Stage):
 
     def run(self, scope, storage):
         """Displays parameters and outputs for the workflow in an IPython notebook."""
+        self._last_scope = scope
+        self._last_storage = storage
         self._maybe_make_config(scope.setdefault('workflow', None))
         self.workflow = scope['workflow']
         self._display_outputs(scope.get('visuals', []))
+        scope['visual_objects'] = self._visual_cache
+        scope['rerun_callback'] = self.workflow.run
 
     def _display_outputs(self, visuals):
         for vis in visuals:
@@ -194,6 +198,12 @@ class ViewNotebook(flowws.Stage):
                             widget.value = str(stage.arguments[stage.name])
                     widget.observe(callback, names='value')
                     stage_widgets.append(widget)
+
+            for (label, callback) in getattr(stage, 'gui_actions', []):
+                widget = ipw.Button(description=label)
+                widget.on_click(
+                    lambda b, c=callback: c(self._last_scope, self._last_storage))
+                stage_widgets.append(widget)
 
             stage_widget = ipw.VBox(stage_widgets)
             config_widgets.append(stage_widget)

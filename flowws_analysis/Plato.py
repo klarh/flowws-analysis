@@ -167,6 +167,7 @@ class Plato(flowws.Stage):
                 self.scene.enable(feature_name)
 
         scope.setdefault('visuals', []).append(self)
+        scope['selection_visual_target'] = self
 
     def draw_plato(self):
         return self.scene
