@@ -2,11 +2,14 @@
 
 # Introduction
 
-`flowws-analysis` is an in-development set of modules to create reusable
-analysis pipelines for scientific simulations.
-
-`flowws-analysis` is being developed in conjunction with
-[flowws](https://github.com/klarh/flowws).
+`flowws-analysis` is an in-development set of
+[flowws](https://flowws.readthedocs.io) modules to create reusable
+analysis pipelines for scientific simulations. Although it is
+currently mostly useful for analyzing structures found in molecular
+simulation (together with
+[flowws-freud](https://github.com/klarh/flowws-freud)), the framework
+can be used as a base for analysis and visualization in jupyter
+notebooks or a standalone GUI for other application domains.
 
 ## Installation
 
