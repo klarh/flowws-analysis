@@ -2,6 +2,7 @@ m2r
 
 garnett
 gtar
+matplotlib
 plato-draw
 pyriodic-structures
 qt.py
