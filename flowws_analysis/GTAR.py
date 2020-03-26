@@ -20,7 +20,7 @@ def find_le(a, x):
 
 @flowws.add_stage_arguments
 class GTAR(flowws.Stage):
-    """Emit the contents of a getar-format file into the scope.
+    """Emit the contents of a :std:doc:`libgetar<libgetar:index>`-format file into the scope.
 
     The GTAR module outputs the records found in a getar-format file
     directly into the scope. It provides a notion of frames in a

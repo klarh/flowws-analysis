@@ -7,7 +7,7 @@ from flowws import Argument as Arg
 
 @flowws.add_stage_arguments
 class Save(flowws.Stage):
-    """Save all present visuals"""
+    """Save all visuals created to individual files."""
     ARGS = [
         Arg('matplotlib_format', None, str, 'pdf',
             help='Format to save matplotlib figures in'),

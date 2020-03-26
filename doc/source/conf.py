@@ -31,6 +31,7 @@ extensions = [
     'm2r',
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
 ]
 
@@ -55,3 +56,10 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+intersphinx_mapping = {
+    'garnett': ('https://garnett.readthedocs.io/en/stable/', None),
+    'libgetar': ('https://libgetar.readthedocs.io/en/stable/', None),
+    'plato': ('https://plato-draw.readthedocs.io/en/stable/', None),
+    'pyriodic': ('https://pyriodic.readthedocs.io/en/stable/', None),
+}

@@ -1,5 +1,5 @@
 
-## Introduction
+# Introduction
 
 `flowws-analysis` is an in-development set of modules to create reusable
 analysis pipelines for scientific simulations.

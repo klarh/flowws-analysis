@@ -25,11 +25,11 @@ SCENE_FEATURE_REMAP = {
 
 @flowws.add_stage_arguments
 class Plato(flowws.Stage):
-    """Render shapes via plato.
+    """Render shapes via :std:doc:`plato<plato:index>`.
 
     This module uses the `position`, `orientation`, `type`, `color`,
     and `type_shapes.json` quantities found in the scope, if provided,
-    to produce a scene of `plato` shapes.
+    to produce a scene of plato shapes.
 
     The `type_shapes.json` value should provide a string of a
     json-encoded list containing one *shape description* object

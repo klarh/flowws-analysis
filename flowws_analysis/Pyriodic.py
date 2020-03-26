@@ -8,7 +8,7 @@ for (name,) in pyriodic.db.query('select name from unit_cells order by name'):
 
 @flowws.add_stage_arguments
 class Pyriodic(flowws.Stage):
-    """Browse structures available in pyriodic.
+    """Browse structures available in :std:doc:`pyriodic<pyriodic:index>`.
 
     This module provides all the structures available in the pyriodic
     default database (which uses all available pyriodic libraries

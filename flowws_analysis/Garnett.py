@@ -21,7 +21,7 @@ GARNETT_TEXT_MODES = {'pos'}
 
 @flowws.add_stage_arguments
 class Garnett(flowws.Stage):
-    """Emit the contents of a garnett-readable trajectory.
+    """Emit the contents of a :std:doc:`garnett<garnett:index>`-readable trajectory.
 
     The Garnett module outputs frames from a trajectory to be used for
     analysis and visualization.
