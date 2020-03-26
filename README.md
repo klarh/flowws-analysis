@@ -1,3 +1,4 @@
+[![ReadTheDocs](https://img.shields.io/readthedocs/flowws-analysis.svg?style=flat)](https://flowws-analysis.readthedocs.io/en/latest/)
 
 # Introduction
 
