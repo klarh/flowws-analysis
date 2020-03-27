@@ -1,3 +1,16 @@
+# v0.4 - 2020/03/27
+
+## Added
+
+- `Center` module
+- `Selection` module
+
+## Fixed
+
+- Fixed `Garnett` for garnett 0.7 API change
+- Set `clip_scale` for plato visuals in `ViewNotebook`
+- Made `ViewNotebook` and `ViewQt` update features from plato scenes
+
 # v0.3 - 2020/02/27
 
 ## Added
