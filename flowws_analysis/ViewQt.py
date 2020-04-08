@@ -265,8 +265,11 @@ class ViewQtApp(QtWidgets.QApplication):
         self.mdi_area = QtWidgets.QMdiArea(self.main_window)
         self.config_dock = QtWidgets.QDockWidget('Options', self.main_window)
         self.config_dock.setObjectName('config_dock')
-        self.config_widget = QtWidgets.QFrame(self.config_dock)
-        self.config_dock.setWidget(self.config_widget)
+        self.scroll_widget = QtWidgets.QScrollArea(self.config_dock)
+        self.config_widget = QtWidgets.QFrame(self.scroll_widget)
+        self.scroll_widget.setWidget(self.config_widget)
+        self.scroll_widget.setWidgetResizable(True)
+        self.config_dock.setWidget(self.scroll_widget)
 
         self.main_window.setCentralWidget(self.mdi_area)
         self.main_window.addDockWidget(QtCore.Qt.LeftDockWidgetArea, self.config_dock)
