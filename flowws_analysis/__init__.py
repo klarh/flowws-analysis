@@ -4,6 +4,7 @@ from .version import __version__
 
 Center = try_to_import('.Center', 'Center', __name__)
 Colormap = try_to_import('.Colormap', 'Colormap', __name__)
+Diffraction = try_to_import('.Diffraction', 'Diffraction', __name__)
 Garnett = try_to_import('.Garnett', 'Garnett', __name__)
 GTAR = try_to_import('.GTAR', 'GTAR', __name__)
 Plato = try_to_import('.Plato', 'Plato', __name__)

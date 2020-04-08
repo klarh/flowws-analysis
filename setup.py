@@ -16,6 +16,7 @@ with open(readme_fname) as readme_file:
 module_names = [
     'Center',
     'Colormap',
+    'Diffraction',
     'Garnett',
     'GTAR',
     'Plato',
