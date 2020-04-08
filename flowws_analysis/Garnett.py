@@ -9,6 +9,7 @@ import garnett
 import numpy as np
 
 GARNETT_READERS = dict(
+    cif=garnett.reader.CifFileReader,
     dcd=garnett.reader.DCDFileReader,
     gsd=garnett.reader.GSDHoomdFileReader,
     pos=garnett.reader.PosFileReader,
@@ -17,7 +18,7 @@ GARNETT_READERS = dict(
     zip=garnett.reader.GetarFileReader,
 )
 
-GARNETT_TEXT_MODES = {'pos'}
+GARNETT_TEXT_MODES = {'cif', 'pos'}
 
 @flowws.add_stage_arguments
 class Garnett(flowws.Stage):
@@ -75,15 +76,25 @@ class Garnett(flowws.Stage):
             0, len(garnett_traj), (True, False))
         frame = garnett_traj[self.arguments['frame']]
 
+        # account for changes in the garnett API around v0.7
         try:
             types = frame.typeid
             positions = frame.position
-            orientations = frame.orientation
+            # account for some types of frames, like those from CIF
+            # files, not exposing orientations and raising an
+            # AttributeError instead
+            try:
+                orientations = frame.orientation
+            except AttributeError:
+                orientations = None
         except AttributeError:
             type_map = {k: i for (i, k) in enumerate(sorted(set(frame.types)))}
             types = np.array([type_map[t] for t in frame.types], dtype=np.uint32)
             positions = frame.positions
-            orientations = frame.orientations
+            try:
+                orientations = frame.orientations
+            except AttributeError:
+                orientations = None
 
         try:
             type_shapes = [shape.type_shape for shape in frame.shapedef.values()]
@@ -93,7 +104,8 @@ class Garnett(flowws.Stage):
             pass
 
         scope['position'] = positions
-        scope['orientation'] = orientations
+        if orientations is not None:
+            scope['orientation'] = orientations
         scope['type'] = types
         scope['box'] = frame.box.get_box_array()
         scope['dimensions'] = frame.box.dimensions
