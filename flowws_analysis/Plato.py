@@ -92,12 +92,13 @@ class Plato(flowws.Stage):
         if len(orientations) < N:
             orientations = np.tile([[1, 0, 0, 0.]], (N, 1))
 
-        colors = np.atleast_2d(scope.get('color', []))
-        if len(colors) < N:
+        if 'color' not in scope or len(scope['color']) < N:
             colors = np.empty((N, 4), dtype=np.float32)
             colors[:, :3] = plato.cmap.cubeellipse_intensity(
                 types.astype(np.float32), h=1.2, s=-0.25, lam=.45)
             colors[:, 3] = 1
+        else:
+            colors = scope['color']
 
         colors[:, :3] *= self.arguments['color_scale']
 
