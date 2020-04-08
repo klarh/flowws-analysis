@@ -51,6 +51,8 @@ Visualization and Rendering
 
 .. autoclass:: Save
 
+.. autoclass:: SaveGarnett
+
 Indices and tables
 ==================
 
