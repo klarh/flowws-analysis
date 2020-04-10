@@ -26,6 +26,7 @@ class Diffraction(flowws.Stage):
         self.positions = scope['position']
         self.box = scope['box']
         scope.setdefault('visuals', []).append(self)
+        scope.setdefault('visual_link_rotation', []).append(self)
 
     def draw_plato(self):
         prim = DiffractionPrimitive(positions=self.positions, box=self.box)
