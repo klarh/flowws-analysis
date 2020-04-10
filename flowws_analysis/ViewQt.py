@@ -146,10 +146,12 @@ class ViewQtApp(QtWidgets.QApplication):
 
             delta = range_.max - range_.min
 
+            result.setDecimals(6)
             result.setMinimum(range_.min +
                               1e-2*delta*(not range_.inclusive[0]))
             result.setMaximum(range_.max -
                               1e-2*delta*(not range_.inclusive[1]))
+            result.setStepType(QtWidgets.QAbstractSpinBox.AdaptiveDecimalStepType)
             result.setSingleStep(5e-2*delta)
             result.setValue(val)
             result.valueChanged[float].connect(callback)
