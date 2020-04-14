@@ -96,6 +96,10 @@ class GTAR(flowws.Stage):
     def _cache_record_frames(self, traj, scope, storage):
         self._cached_record_frames = {}
         for rec in traj.getRecordTypes():
+            # ignore per-bond records and so on, for now
+            if rec.getGroup() != '':
+                continue
+
             self._cached_record_frames[rec] = list(map(
                 index_sort_key, traj.queryFrames(rec)))
 
