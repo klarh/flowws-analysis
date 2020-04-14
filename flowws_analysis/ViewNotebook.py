@@ -55,6 +55,12 @@ class ViewNotebook(flowws.Stage):
         self.workflow = scope['workflow']
         self._display_outputs(scope.get('visuals', []))
         scope['visual_objects'] = self._visual_cache
+
+        linked_visuals = [self._visual_cache[v] for v in
+                          self._last_scope.get('visual_link_rotation', [])]
+        for visual in linked_visuals:
+            visual.enable('link_rotation', targets=linked_visuals)
+
         scope['rerun_callback'] = self.workflow.run
 
     def _display_outputs(self, visuals):
