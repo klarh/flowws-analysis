@@ -1,3 +1,18 @@
+# v0.5 - 2020/04/15
+
+## Added
+
+- `Diffraction` module (experimental status)
+- Ability to link rotations of various plato-related visuals
+- CIF file support in `Garnett`
+- Basic `SaveGarnett` module for individual frames (improved functionality to come at a later time)
+
+## Fixed
+
+- Improved robustness of `Plato` when colors aren't given
+- Added scrollbar to `ViewQt` configuration panel
+- Increase the number of decimal places for `ViewQt` floating-point widgets
+
 # v0.4 - 2020/03/27
 
 ## Added
