@@ -36,6 +36,8 @@ Calculation and Analysis
 
 .. autoclass:: Center
 
+.. autoclass:: Diffraction
+
 .. autoclass:: Colormap
 
 .. autoclass:: Selection

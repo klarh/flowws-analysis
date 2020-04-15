@@ -7,7 +7,17 @@ from ._diffraction_primitive import DEFAULT_COLORMAP
 
 @flowws.add_stage_arguments
 class Diffraction(flowws.Stage):
-    """Compute a 3D diffraction pattern of the system."""
+    """Compute a 3D diffraction pattern of the system and display its slice or projection.
+
+    This stage computes a 3D histogram of the system based on the
+    given periodic system box and particle coordinates and performs
+    the FFT in 3D. Either a slice or full projection through the
+    Fourier space is displayed with the current system orientation.
+
+    **Note:** This module should be considered experimental in terms
+    of stability for the time being; the inputs and outputs may change
+    drastically in the future, or the module may be removed entirely.
+    """
     ARGS = [
         Arg('bin_count', '-b', int, default=128,
             help='Number of bins to use in the x, y, and z directions'),
