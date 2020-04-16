@@ -7,5 +7,7 @@ plato-draw
 pyriodic-structures
 qt.py
 pyside2
+scipy
+vispy
 ipywidgets
 ipython
