@@ -196,8 +196,8 @@ class Diffraction(DiffractionBase, GLPrimitive):
 
     def update_arrays(self):
         if 'box' in self._dirty_attributes:
-            matrix = plato.math.box_to_matrix(self.box).T
-            matrix /= np.max(self.box[:3])
+            matrix = plato.math.box_to_matrix(self.box)
+            matrix /= np.max(np.linalg.norm(matrix, axis=0))
             self._dirty_uniforms.add('u_box_scaling')
             self._gl_uniforms['u_box_scaling'] = matrix
 
