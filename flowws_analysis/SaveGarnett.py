@@ -5,7 +5,10 @@ import garnett
 import numpy as np
 
 FakeFrame = collections.namedtuple(
-    'FakeFrame', ['box', 'position', 'orientation', 'types', 'typeid'])
+    'FakeFrame', [
+        'box', 'position', 'orientation', 'types', 'typeid', 'data',
+        'view_rotation', 'N',
+    ])
 
 @flowws.add_stage_arguments
 class SaveGarnett(flowws.Stage):
@@ -38,7 +41,9 @@ class SaveGarnett(flowws.Stage):
         else:
             type_names = scope['type_names']
 
-        the_frame = FakeFrame(box, positions, orientations, type_names, types)
+        the_frame = FakeFrame(
+            box, positions, orientations, type_names, types, None, None,
+            len(positions))
 
         mode = ('w' if any(filename.endswith(suf) for suf in ['.pos', '.cif'])
                 else 'wb')
