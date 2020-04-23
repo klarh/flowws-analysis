@@ -1,3 +1,9 @@
+# v0.5.1 - 2020/04/23
+
+## Fixed
+
+- Fixed scaling of `Diffraction` for triclinic boxes
+
 # v0.5 - 2020/04/15
 
 ## Added
