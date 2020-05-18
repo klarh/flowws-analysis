@@ -219,6 +219,8 @@ class ViewQtApp(QtWidgets.QApplication):
         self.file_menu.addAction(close_action)
 
         self.view_menu = self.menubar.addMenu('&View')
+        toggle_options_action = self.view_menu.addAction('Toggle options')
+        toggle_options_action.triggered.connect(self._toggle_options)
         self.view_menu.addSection('Windows')
         tile_action = self.view_menu.addAction('&Tile')
         tile_action.triggered.connect(
@@ -318,6 +320,12 @@ class ViewQtApp(QtWidgets.QApplication):
                               QtCore.Qt.WindowMinMaxButtonsHint |
                               QtCore.Qt.WindowTitleHint)
         window.show()
+
+    def _toggle_options(self):
+        if self.config_dock.isVisible():
+            self.config_dock.hide()
+        else:
+            self.config_dock.show()
 
     def _update_stage_config(self):
         if not self.stage_event.is_set():
