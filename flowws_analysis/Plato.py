@@ -48,6 +48,8 @@ class Plato(flowws.Stage):
             help='Outline for all shapes'),
         Arg('color_scale', None, float, 1, valid_values=flowws.Range(0, 10, True),
             help='Factor to scale color RGB intensities by'),
+        Arg('draw_scale', '-s', float, 1,
+            help='Scale to multiply particle size by'),
         Arg('additive_rendering', None, bool, False,
             help='Use additive rendering for shapes'),
         Arg('fast_antialiasing', None, bool, False,
@@ -105,6 +107,7 @@ class Plato(flowws.Stage):
         diameters = np.atleast_1d(scope.get('diameter', 1))
         if len(diameters) < N:
             diameters = np.repeat(1, N)
+        diameters = diameters*self.arguments['draw_scale']
 
         if self.arguments.get('disable_rounding', False):
             for description in type_shapes:
@@ -141,7 +144,7 @@ class Plato(flowws.Stage):
                 prim.positions = positions[filt, :2]
             else:
                 prim.positions = positions[filt]
-            prim.orientations = orientations[filt]
+            prim.orientations = orientations[filt]*np.sqrt(self.arguments['draw_scale'])
             prim.colors = colors[filt]
             prim.diameters = diameters[filt]
             prim.outline = self.arguments['outline']
