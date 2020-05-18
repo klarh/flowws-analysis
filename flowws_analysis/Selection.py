@@ -24,18 +24,18 @@ def dynamic_mouse_selection_callback(start_point, end_point, selection_module, s
     selection_module._add_dynamic_mouse_selection(
         scope, scene.rotation, scene.translation, lowers, uppers)
 
-def convex_hull_indices(box, position):
+def convex_hull_indices(scope):
     from .Center import center
     from scipy.spatial import ConvexHull
 
-    positions = center(box, position)
+    positions = center(scope['box'], scope['position'])
     hull = ConvexHull(positions)
     hull_indices = set(hull.vertices)
     keep_indices = [i for i in range(len(positions)) if i not in hull_indices]
     return keep_indices
 
-def filter_rectangle(box, position, translation, rotation, lower, upper):
-    positions = plato.math.quatrot(rotation, position)
+def filter_rectangle(scope, translation, rotation, lower, upper):
+    positions = plato.math.quatrot(rotation, scope['position'])
     positions += translation
 
     above = np.all(positions[:, :2] > lower, axis=-1)
@@ -69,7 +69,7 @@ class Selection(flowws.Stage):
                                  if name in scope]
         found_quantities.extend(scope.get('color_scalars', []))
 
-        namespace = dict(scope)
+        namespace = dict(scope=scope)
         namespace['numpy'] = namespace['np'] = np
         namespace['filter_rectangle'] = filter_rectangle
         namespace['convex_hull_indices'] = convex_hull_indices
@@ -78,7 +78,7 @@ class Selection(flowws.Stage):
             this_filter = eval(criterion, namespace)
 
             for name in found_quantities:
-                namespace[name] = scope[name] = scope[name][this_filter]
+                scope[name] = scope[name][this_filter]
 
         self.gui_actions = [
             ('Select rectangle', self._rectangle_callback),
@@ -90,7 +90,7 @@ class Selection(flowws.Stage):
 
     def _add_mouse_selection(self, scope, rotation, translation, lower, upper):
         indices = filter_rectangle(
-            scope['box'], scope['position'], translation, rotation, lower, upper)
+            scope, translation, rotation, lower, upper)
 
         if len(indices):
             self.arguments['criteria'].append(str(indices.tolist()))
@@ -99,7 +99,7 @@ class Selection(flowws.Stage):
                 scope['rerun_callback']()
 
     def _add_dynamic_mouse_selection(self, scope, rotation, translation, lower, upper):
-        code = 'filter_rectangle(box, position, {}, {}, {}, {})'.format(
+        code = 'filter_rectangle(scope, {}, {}, {}, {})'.format(
             translation.tolist(), rotation.tolist(), lower.tolist(), upper.tolist())
         self.arguments['criteria'].append(code)
 
@@ -108,7 +108,7 @@ class Selection(flowws.Stage):
 
     def _dynamic_hull(self, scope, storage):
         self.arguments['criteria'].append(
-            'convex_hull_indices(box, position)')
+            'convex_hull_indices(scope)')
 
         if scope.get('rerun_callback', None) is not None:
             scope['rerun_callback']()
@@ -139,7 +139,7 @@ class Selection(flowws.Stage):
             scope['rerun_callback']()
 
     def _remove_hull(self, scope, storage):
-        keep_indices = convex_hull_indices(scope['box'], scope['position'])
+        keep_indices = convex_hull_indices(scope)
         self.arguments['criteria'].append(str(keep_indices))
 
         if scope.get('rerun_callback', None) is not None:
