@@ -103,6 +103,11 @@ class Garnett(flowws.Stage):
         except AttributeError: # no shapedefs
             pass
 
+        try:
+            scope['diameter'] = frame.diameter
+        except AttributeError: # no diameters
+            pass
+
         scope['position'] = positions
         if orientations is not None:
             scope['orientation'] = orientations
