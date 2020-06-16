@@ -34,6 +34,8 @@ class GTAR(flowws.Stage):
             help='Frame to load'),
         Arg('loop_frames', type=bool, default=False,
             help='If True, loop the workflow over frames found in the trajectory file, beginning at the given frame'),
+        Arg('group', '-g', str, '',
+            help='GTAR group to restrict results to'),
     ]
 
     def __init__(self, *args, **kwargs):
@@ -72,7 +74,7 @@ class GTAR(flowws.Stage):
 
         gtar_traj = self._get_traj(self.arguments['filename'], storage)
 
-        self._cache_record_frames(gtar_traj, scope, storage)
+        self._cache_record_frames(gtar_traj, scope, storage, self.arguments['group'])
         if self.arguments['loop_frames'] and not self._looping:
             self._looping, self.arguments['loop_frames'] = True, False
             try:
@@ -93,11 +95,11 @@ class GTAR(flowws.Stage):
             callback = functools.partial(gtar_traj.getRecord, rec, rec.getIndex())
             scope.set_call(rec.getName(), callback)
 
-    def _cache_record_frames(self, traj, scope, storage):
+    def _cache_record_frames(self, traj, scope, storage, group):
         self._cached_record_frames = {}
         for rec in traj.getRecordTypes():
             # ignore per-bond records and so on, for now
-            if rec.getGroup() != '':
+            if rec.getGroup() != group:
                 continue
 
             self._cached_record_frames[rec] = list(map(
