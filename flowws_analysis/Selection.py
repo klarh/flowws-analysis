@@ -1,3 +1,4 @@
+import copy
 import functools
 
 import flowws
@@ -7,6 +8,7 @@ import numpy as np
 
 DEFAULT_PARTICLE_QUANTITIES = [
     'color',
+    'diameter',
     'orientation',
     'position',
     'type',
@@ -80,6 +82,7 @@ class Selection(flowws.Stage):
             for name in found_quantities:
                 scope[name] = scope[name][this_filter]
 
+        self.saved_scope = copy.copy(scope)
         self.gui_actions = [
             ('Select rectangle', self._rectangle_callback),
             ('Dynamic rectangle', self._dynamic_rectangle),
@@ -90,7 +93,7 @@ class Selection(flowws.Stage):
 
     def _add_mouse_selection(self, scope, rotation, translation, lower, upper):
         indices = filter_rectangle(
-            scope, translation, rotation, lower, upper)
+            self.saved_scope, translation, rotation, lower, upper)
 
         if len(indices):
             self.arguments['criteria'].append(str(indices.tolist()))
@@ -139,7 +142,7 @@ class Selection(flowws.Stage):
             scope['rerun_callback']()
 
     def _remove_hull(self, scope, storage):
-        keep_indices = convex_hull_indices(scope)
+        keep_indices = convex_hull_indices(self.saved_scope)
         self.arguments['criteria'].append(str(keep_indices))
 
         if scope.get('rerun_callback', None) is not None:
