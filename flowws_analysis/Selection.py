@@ -65,9 +65,9 @@ class Selection(flowws.Stage):
 
     def run(self, scope, storage):
         """Evaluate the given selection criteria and filter particles."""
-        found_quantities = [name for name in DEFAULT_PARTICLE_QUANTITIES
-                                 if name in scope]
-        found_quantities.extend(scope.get('color_scalars', []))
+        found_quantities = {name for name in DEFAULT_PARTICLE_QUANTITIES
+                                 if name in scope}
+        found_quantities.update(scope.get('color_scalars', []))
 
         namespace = dict(scope=scope)
         namespace['numpy'] = namespace['np'] = np
