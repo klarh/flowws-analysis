@@ -58,6 +58,8 @@ class Plato(flowws.Stage):
             help='Use Screen Space Ambient Occlusion (SSAO)'),
         Arg('disable_rounding', None, bool, False,
             help='Disable spheropolyhedra and spheropolygons'),
+        Arg('disable_selection', None, bool, False,
+            help='Don\'t allow selection of particles for this scene'),
     ]
 
     def run(self, scope, storage):
@@ -172,7 +174,8 @@ class Plato(flowws.Stage):
 
         scope.setdefault('visuals', []).append(self)
         scope.setdefault('visual_link_rotation', []).append(self)
-        scope['selection_visual_target'] = self
+        if not self.arguments['disable_selection']:
+            scope['selection_visual_target'] = self
 
     def draw_plato(self):
         return self.scene
