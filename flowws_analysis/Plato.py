@@ -122,7 +122,7 @@ class Plato(flowws.Stage):
             else:
                 type_shapes.append(dict(type='Sphere'))
 
-        primitives = []
+        primitives = list(scope.get('plato_primitives', []))
         for (t, description) in zip(unique_types, type_shapes):
             filt = types == t
 
