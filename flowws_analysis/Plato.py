@@ -50,6 +50,8 @@ class Plato(flowws.Stage):
             help='Factor to scale color RGB intensities by'),
         Arg('draw_scale', '-s', float, 1,
             help='Scale to multiply particle size by'),
+        Arg('display_box', '-b', bool, True,
+            help='Display the system box'),
         Arg('additive_rendering', None, bool, False,
             help='Use additive rendering for shapes'),
         Arg('fast_antialiasing', None, bool, False,
@@ -153,7 +155,7 @@ class Plato(flowws.Stage):
 
             primitives.append(prim)
 
-        if 'box' in scope:
+        if 'box' in scope and self.arguments['display_box']:
             prim = draw.Box.from_box(scope['box'])
             prim.width = min(scope['box'][:dimensions])*5e-3
             prim.color = (0, 0, 0, 1)
