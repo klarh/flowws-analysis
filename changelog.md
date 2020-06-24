@@ -1,3 +1,20 @@
+# v0.6.0 - 2020/06/24
+
+## Added
+
+- Support per-particle diameters in Garnett
+- `draw_scale` argument in Plato
+- Dynamic versions of rectangle and convex hull selections in Selection
+- Menu item in ViewQt to toggle the display of the stage configuration panel
+- Ability to filter records by group in GTAR
+- `disable_selection` argument in Plato
+- `display_box` argument in Plato
+
+## Fixed
+
+- Bug with overwriting quantities in Selection
+- Repeated filtering bug in Selection
+
 # v0.5.1 - 2020/04/23
 
 ## Fixed
