@@ -1,3 +1,5 @@
+import functools
+
 import flowws
 from flowws import Argument as Arg
 import pyriodic
@@ -28,16 +30,23 @@ class Pyriodic(flowws.Stage):
 
     def run(self, scope, storage):
         """Load the given structure into the scope"""
-        structure_name = self.arguments['structure']
-        query = 'select structure from unit_cells where name = ? limit 1'
-        for (structure,) in pyriodic.db.query(query, (structure_name,)):
-            pass
-
-        structure = structure.rescale_shortest_distance(1)
-        structure = structure.replicate_upto(self.arguments['size'])
-        if self.arguments['noise']:
-            structure = structure.add_gaussian_noise(self.arguments['noise'])
+        structure = self._get_structure(
+            self.arguments['structure'], self.arguments['size'],
+            self.arguments['noise'])
 
         scope['position'] = structure.positions
         scope['type'] = structure.types
         scope['box'] = structure.box
+
+    @functools.lru_cache(maxsize=1)
+    def _get_structure(self, name, size, noise):
+        query = 'select structure from unit_cells where name = ? limit 1'
+        for (structure,) in pyriodic.db.query(query, (name,)):
+            pass
+
+        structure = structure.rescale_shortest_distance(1)
+        structure = structure.replicate_upto(size)
+        if noise:
+            structure = structure.add_gaussian_noise(self.arguments['noise'])
+
+        return structure
