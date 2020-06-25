@@ -130,8 +130,9 @@ class Plato(flowws.Stage):
                 type_shapes.append(dict(type='Sphere'))
 
         primitives = list(scope.get('plato_primitives', []))
+        primitive_indices = [[]]*len(primitives)
         for (t, description) in zip(unique_types, type_shapes):
-            filt = types == t
+            filt = np.where(types == t)[0]
 
             prim_type = description['type'].lower()
             is_2d = prim_type in ('disk', 'polygon')
@@ -158,12 +159,14 @@ class Plato(flowws.Stage):
             prim.diameters = diameters[filt]
             prim.outline = self.arguments['outline']
 
+            primitive_indices.append(filt)
             primitives.append(prim)
 
         if 'box' in scope and self.arguments['display_box']:
             prim = draw.Box.from_box(scope['box'])
             prim.width = min(scope['box'][:dimensions])*5e-3
             prim.color = (0, 0, 0, 1)
+            primitive_indices.append([])
             primitives.append(prim)
 
             scene_kwargs['size'] = 1.05*np.array(scope['box'][:2])
@@ -182,6 +185,7 @@ class Plato(flowws.Stage):
         if self.arguments['cartoon_outline']:
             self.scene.enable('outlines', self.arguments['cartoon_outline'])
 
+        scope['primitive_indices'] = primitive_indices
         scope.setdefault('visuals', []).append(self)
         scope.setdefault('visual_link_rotation', []).append(self)
         if not self.arguments['disable_selection']:

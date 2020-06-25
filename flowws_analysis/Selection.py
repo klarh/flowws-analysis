@@ -26,6 +26,23 @@ def dynamic_mouse_selection_callback(start_point, end_point, selection_module, s
     selection_module._add_dynamic_mouse_selection(
         scope, scene.rotation, scene.translation, lowers, uppers)
 
+def delete_particle_callback(scene, primitive_index, shape_index,
+                             selection_module, scope):
+    saved_scope = selection_module.saved_scope
+    primitive_indices = scope['primitive_indices']
+    shape_indices = primitive_indices[primitive_index]
+
+    # a shape that is not associated with any selectable particle was selected
+    if not len(shape_indices):
+        return
+    particle_index = shape_indices[shape_index]
+
+    N = len(saved_scope['position'])
+    result = np.arange(0, N - 1)
+    result[particle_index:] += 1
+
+    selection_module._add_delete_particle_selection(scope, result)
+
 def convex_hull_indices(scope):
     from .Center import center
     from scipy.spatial import ConvexHull
@@ -88,6 +105,7 @@ class Selection(flowws.Stage):
             ('Dynamic rectangle', self._dynamic_rectangle),
             ('Remove convex hull', self._remove_hull),
             ('Dynamic convex hull', self._dynamic_hull),
+            ('Delete selected particle', self._delete_particle),
             ('Undo last selection', self._pop_selection),
         ]
 
@@ -108,6 +126,21 @@ class Selection(flowws.Stage):
 
         if scope.get('rerun_callback', None) is not None:
             scope['rerun_callback']()
+
+    def _add_delete_particle_selection(self, scope, indices):
+        if len(indices):
+            self.arguments['criteria'].append(str(indices.tolist()))
+
+            if scope.get('rerun_callback', None) is not None:
+                scope['rerun_callback']()
+
+    def _delete_particle(self, scope, storage):
+        visual_target = scope['selection_visual_target']
+        plato_scene = scope['visual_objects'][visual_target]
+
+        delete_callback = functools.partial(
+            delete_particle_callback, selection_module=self, scope=scope)
+        plato_scene.enable('pick', delete_callback)
 
     def _dynamic_hull(self, scope, storage):
         self.arguments['criteria'].append(
