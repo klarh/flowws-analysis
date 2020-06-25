@@ -69,8 +69,9 @@ class Selection(flowws.Stage):
     """Filter the set of displayed particles manually or by specified criteria.
 
     This module removes particles by filtering all per-particle
-    quantities according to a series of criteria, such as
-    `potential_energy < -0.5`.
+    quantities according to a series of criteria. These criteria use
+    the "state" scope that is used to pass data between modules, such
+    as `scope["potential_energy"] < -0.5`.
 
     When used interactively with vispy scenes, selections can be made
     with the mouse, or particles on the convex hull of a droplet can
