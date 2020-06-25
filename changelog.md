@@ -1,3 +1,15 @@
+# v0.7.0 - 2020/06/25
+
+## Added
+
+- Support for deleting individual particles by mouse in Selection
+- Cartoony outline and transparency modes in Plato
+
+## Fixed
+
+- Improve speed when interactively running pipelines with Pyriodic by caching generated unit cells
+- Remove duplicate structure names in Pyriodic
+
 # v0.6.0 - 2020/06/24
 
 ## Added
