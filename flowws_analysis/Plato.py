@@ -21,6 +21,7 @@ SCENE_FEATURE_REMAP = {
     'additive_rendering': 'additive_rendering',
     'ambient_occlusion': 'ssao',
     'fast_antialiasing': 'fxaa',
+    'transparency': 'translucency',
 }
 
 @flowws.add_stage_arguments
@@ -45,13 +46,17 @@ class Plato(flowws.Stage):
     """
     ARGS = [
         Arg('outline', '-o', float, 0,
-            help='Outline for all shapes'),
+            help='High-quality outline for spheres and polyhedra'),
+        Arg('cartoon_outline', None, float, 0,
+            help='Cartoon-like outline mode for all shapes'),
         Arg('color_scale', None, float, 1, valid_values=flowws.Range(0, 10, True),
             help='Factor to scale color RGB intensities by'),
         Arg('draw_scale', '-s', float, 1,
             help='Scale to multiply particle size by'),
         Arg('display_box', '-b', bool, True,
             help='Display the system box'),
+        Arg('transparency', None, bool, False,
+            help='Enable special translucent particle rendering'),
         Arg('additive_rendering', None, bool, False,
             help='Use additive rendering for shapes'),
         Arg('fast_antialiasing', None, bool, False,
@@ -173,6 +178,9 @@ class Plato(flowws.Stage):
         for (argument_name, feature_name) in SCENE_FEATURE_REMAP.items():
             if self.arguments[argument_name]:
                 self.scene.enable(feature_name)
+
+        if self.arguments['cartoon_outline']:
+            self.scene.enable('outlines', self.arguments['cartoon_outline'])
 
         scope.setdefault('visuals', []).append(self)
         scope.setdefault('visual_link_rotation', []).append(self)
