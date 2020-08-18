@@ -201,7 +201,7 @@ class ViewNotebook(flowws.Stage):
                             self.rerun, arg, stage, eval_first=True)
                         widget = ipw.Text(description=arg.name)
                         if arg.name in stage.arguments:
-                            widget.value = str(stage.arguments[stage.name])
+                            widget.value = str(stage.arguments[arg.name])
                     widget.observe(callback, names='value')
                     stage_widgets.append(widget)
 
