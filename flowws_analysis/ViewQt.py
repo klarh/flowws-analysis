@@ -21,9 +21,16 @@ logger = logging.getLogger(__name__)
 
 def _bool_checkbox_helper(f):
     remap = {
-        QtCore.Qt.CheckState.Checked: True,
-        QtCore.Qt.CheckState.Unchecked: False
+        2: True,
+        0: False
     }
+    try:
+        # fix for old versions of pyqt
+        remap[QtCore.Qt.CheckState.Checked] = True
+        remap[QtCore.Qt.CheckState.Unchecked] = False
+    except AttributeError:
+        pass
+
     def result(value):
         return f(remap[value])
     return result
