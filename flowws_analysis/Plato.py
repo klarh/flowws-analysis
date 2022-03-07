@@ -74,7 +74,7 @@ class Plato(flowws.Stage):
         scene_kwargs = {}
         positions = np.asarray(scope['position'])
         N = len(positions)
-        if 'type' in scope:
+        if 'type' in scope and scope['type'] is not None and len(scope['type']):
             types = np.asarray(scope['type'])
         else:
             types = np.repeat(0, N)
