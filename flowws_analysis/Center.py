@@ -45,14 +45,14 @@ class Center(flowws.Stage):
 
         if index is not None:
             center_point = positions[index]
-            positions -= center_point[np.newaxis]
+            positions = positions - center_point[np.newaxis]
 
             if box is not None:
                 positions = wrap(box, positions)
 
         elif box is None:
             center_point = np.mean(positions, axis=0)
-            positions -= center_point[np.newaxis]
+            positions = positions - center_point[np.newaxis]
 
         else:
             positions = center(box, positions)
