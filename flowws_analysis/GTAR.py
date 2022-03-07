@@ -105,13 +105,23 @@ class GTAR(flowws.Stage):
             self._cached_record_frames[rec] = list(map(
                 index_sort_key, traj.queryFrames(rec)))
 
-        (_, self._cached_frame_indices) = max(
-            (len(indices), indices) for (rec, indices) in
-            self._cached_record_frames.items() if
-            rec.getBehavior() == gtar.Behavior.Discrete)
+            if rec.getBehavior() == gtar.Behavior.Constant:
+                callback = functools.partial(traj.getRecord, rec, rec.getIndex())
+                scope.set_call(rec.getName(), callback)
+
+        try:
+            (_, self._cached_frame_indices) = max(
+                (len(indices), indices) for (rec, indices) in
+                self._cached_record_frames.items() if
+                rec.getBehavior() == gtar.Behavior.Discrete)
+        except ValueError: # empty sequence
+            self._cached_frame_indices = []
 
     def _set_record_frames(self):
         frame = self.arguments['frame']
+
+        if not self._cached_frame_indices:
+            return []
 
         index_to_find = index_sort_key(self._cached_frame_indices[self.arguments['frame']][1])
         self.arg_specifications['frame'].valid_values = flowws.Range(
