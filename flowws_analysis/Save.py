@@ -43,6 +43,8 @@ class Save(flowws.Stage):
                 modifiers = []
                 if isinstance(vis, flowws.Stage):
                     modifiers.append(type(vis).__name__)
+                elif hasattr(vis, 'visual_name'):
+                    modifiers.append(vis.visual_name)
                 modifiers.extend(self.arguments.get('file_modifiers', []))
                 self._update_modifiers(filename, modifiers)
 
@@ -75,6 +77,8 @@ class Save(flowws.Stage):
                 modifiers = []
                 if isinstance(vis, flowws.Stage):
                     modifiers.append(type(vis).__name__)
+                elif hasattr(vis, 'visual_name'):
+                    modifiers.append(vis.visual_name)
                 modifiers.extend(self.arguments.get('file_modifiers', []))
                 self._update_modifiers(filename, modifiers)
 
