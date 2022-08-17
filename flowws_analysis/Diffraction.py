@@ -1,5 +1,6 @@
 import flowws
 from flowws import Argument as Arg
+import numpy as np
 import plato.draw
 
 from ._diffraction_primitive import Diffraction as DiffractionPrimitive
@@ -29,12 +30,24 @@ class Diffraction(flowws.Stage):
             help='Maximum value of intensity to clip to'),
         Arg('sigma', None, float, 0,
             help='Lengthscale of blurring the FFT'),
+        Arg('clip_box', None, bool, False,
+            help='If True, clip the system bounding box to twice the system size in each direction'),
+        Arg('clip_box_scale', None, float, 2.,
+            help='Ratio of clipped box to system bounding box if clip_box is enabled'),
     ]
 
     def run(self, scope, storage):
         """Prepare to display the diffraction pattern"""
         self.positions = scope['position']
         self.box = scope['box']
+
+        if self.arguments['clip_box']:
+            xmax = np.max(self.positions, axis=0)
+            xmin = np.min(self.positions, axis=0)
+            delta = self.arguments['clip_box_scale']*(xmax - xmin)
+            new_box = (delta[0], delta[1], delta[2], 0, 0, 0)
+            self.box = new_box
+
         scope.setdefault('visuals', []).append(self)
         scope.setdefault('visual_link_rotation', []).append(self)
 
