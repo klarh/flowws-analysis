@@ -198,6 +198,10 @@ class ViewQtApp(QtWidgets.QApplication):
 
                 layout.addRow(arg.name, widget)
 
+            if hasattr(stage, 'make_qt_config_widget'):
+                stage_widget = stage.make_qt_config_widget(self._rerun)
+                layout.addWidget(stage_widget)
+
             for (label, callback) in getattr(stage, 'gui_actions', []):
                 widget = QtWidgets.QPushButton(label)
                 widget.clicked.connect(
@@ -339,8 +343,6 @@ class ViewQtApp(QtWidgets.QApplication):
             return
 
         self.stage_event.clear()
-        # TODO cache some of these things instead of constantly recreating
-        self._make_config_widgets()
 
     def _update_visual(self, vis):
         if hasattr(vis, 'draw_matplotlib'):
