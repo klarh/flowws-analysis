@@ -42,7 +42,7 @@ class Colormap(flowws.Stage):
         if argument is None:
             self.arguments['argument'] = color_scalars[0]
         self.arg_specifications['colormap_name'].valid_values = \
-            sorted(matplotlib.cm.cmap_d.keys())
+            sorted(matplotlib.cm.cmaps_listed)
 
         N = len(scope['position'])
 
